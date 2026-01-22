@@ -1,0 +1,22 @@
+/**
+ * Responsive Design Styles
+ */
+
+@media (max-width: 768px) {
+  .table-filter-container {
+    padding: 0.5rem;
+  }
+
+  .table-filter-search {
+    width: 100%;
+  }
+
+  table[data-table-filter] {
+    font-size: 0.875rem;
+  }
+
+  table[data-table-filter] th,
+  table[data-table-filter] td {
+    padding: 0.5rem;
+  }
+}

@@ -1,0 +1,49 @@
+/**
+ * Filter Pills Styles
+ */
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 16px;
+  font-family: Lato, sans-serif;
+  font-weight: 400;
+  line-height: 24px;
+  color: #1f1f5f;
+  background-color: white;
+  border: 1px solid #d3d3d7;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.filter-pill-label {
+  text-align: center;
+}
+
+.filter-pill:hover {
+  background-color: #e7e7ea;
+}
+
+.filter-pill:focus {
+  outline: 4px solid #ec8c58;
+  outline-offset: -1px;
+  border-color: #d3d3d7;
+}
+
+.filter-pill-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  position: relative;
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+  color: #1f1f5f;
+}

@@ -1,6 +1,5 @@
 /**
- * Table Filter Component Styles
- * Styles for the table filtering component
+ * Filter Container Styles
  */
 
 /* Filter container */
@@ -19,7 +18,10 @@
   color: #333;
 }
 
-/* Search input */
+/**
+ * Search Input Styles
+ */
+
 .table-filter-search {
   padding: 0.5rem 0.75rem;
   font-size: 1rem;
@@ -36,7 +38,10 @@
   box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
 }
 
-/* Form select dropdown */
+/**
+ * Dropdown Styles
+ */
+
 .form-select {
   display: block;
   width: 100%;
@@ -52,54 +57,16 @@
   background-position: right 0.75rem center;
   background-size: 16px 12px;
   border: 1px solid #ced4da;
-  /* border-radius: .375rem; */
   transition:
     border-color 0.15s ease-in-out,
     box-shadow 0.15s ease-in-out;
   appearance: none;
 }
 
-/* No results message */
-.table-filter-no-results {
-  padding: 1rem;
-  margin-top: 1rem;
-  background-color: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 4px;
-  color: #856404;
-  text-align: center;
-}
+/**
+ * Filter Pills Styles
+ */
 
-/* Table styling */
-table[data-table-filter] {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-table[data-table-filter] th,
-table[data-table-filter] td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-table[data-table-filter] th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #333;
-}
-
-table[data-table-filter] tbody tr:hover {
-  background-color: #f5f5f5;
-}
-
-/* Hidden row state */
-table[data-table-filter] tr[style*="display: none"] {
-  display: none;
-}
-
-/* Filter pills */
 .filter-pill {
   display: inline-flex;
   align-items: center;
@@ -146,7 +113,119 @@ table[data-table-filter] tr[style*="display: none"] {
   color: #1f1f5f;
 }
 
-/* Responsive design */
+/**
+ * Table Styles
+ */
+
+table[data-table-filter] {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+/* Table Headers */
+table[data-table-filter] th {
+  padding: 16px 8px;
+  text-align: left;
+  background: white;
+  border-bottom: 1px solid #848491;
+  color: #1f1f5f;
+  font-size: 16px;
+  font-family: Lato, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 16px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+table[data-table-filter] th:hover {
+  background-color: #f5f5f7;
+}
+
+/* Sort Icons */
+table[data-table-filter] th .sort-icon {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 8px;
+  vertical-align: middle;
+  gap: 0;
+}
+
+table[data-table-filter] th .sort-arrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+
+table[data-table-filter] th .sort-arrow-up {
+  border-bottom: 5.38px solid #666774;
+  margin-bottom: 1px;
+}
+
+table[data-table-filter] th .sort-arrow-down {
+  border-top: 5.38px solid #666774;
+}
+
+table[data-table-filter] th.sort-asc .sort-arrow-up {
+  border-bottom-color: #1f1f5f;
+}
+
+table[data-table-filter] th.sort-desc .sort-arrow-down {
+  border-top-color: #1f1f5f;
+}
+
+/* Table Cells */
+table[data-table-filter] td {
+  padding: 16px 8px;
+  text-align: left;
+  border-bottom: 1px solid #d3d3d7;
+  color: #1f1e27;
+  font-size: 16px;
+  font-family: Lato, sans-serif;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* Alternating Row Colors */
+table[data-table-filter] tbody tr:nth-child(odd) {
+  background-color: #f5f5f7;
+}
+
+table[data-table-filter] tbody tr:nth-child(even) {
+  background-color: white;
+}
+
+table[data-table-filter] tbody tr:hover {
+  opacity: 0.9;
+}
+
+/* Hidden Rows */
+table[data-table-filter] tr[style*="display: none"] {
+  display: none;
+}
+
+/**
+ * No Results Message Styles
+ */
+
+.table-filter-no-results {
+  padding: 1rem;
+  margin-top: 1rem;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  text-align: center;
+}
+
+/**
+ * Responsive Design Styles
+ */
+
 @media (max-width: 768px) {
   .table-filter-container {
     padding: 0.5rem;
@@ -165,6 +244,11 @@ table[data-table-filter] tr[style*="display: none"] {
     padding: 0.5rem;
   }
 }
+
+/**
+ * Table Filter Component Styles
+ * Main stylesheet that imports all component styles
+ */
 
 
 /*# sourceMappingURL=table-filter.css.map*/

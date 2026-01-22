@@ -24,13 +24,44 @@ class TableFilter {
       search: "",
       columns: {},
     };
+    this.sortState = {
+      columnIndex: null,
+      direction: null, // 'asc' or 'desc'
+    };
 
     this.init();
   }
 
   init() {
+    // Add data-table-filter attribute to the table for CSS targeting
+    this.table.setAttribute("data-table-filter", "");
+
     this.createFilterMarkup();
+    this.initializeTableHeaders();
     this.attachEventListeners();
+  }
+
+  initializeTableHeaders() {
+    const thead = this.table.querySelector("thead");
+    if (!thead) return;
+
+    const headers = thead.querySelectorAll("th");
+    headers.forEach((header, index) => {
+      // Skip if header already has sort icon
+      if (header.querySelector(".sort-icon")) return;
+
+      // Add sort icon
+      const sortIcon = document.createElement("span");
+      sortIcon.className = "sort-icon";
+      sortIcon.innerHTML = `
+        <span class="sort-arrow sort-arrow-up"></span>
+        <span class="sort-arrow sort-arrow-down"></span>
+      `;
+      header.appendChild(sortIcon);
+
+      // Add click handler
+      header.addEventListener("click", () => this.sortTable(index));
+    });
   }
 
   createFilterMarkup() {
@@ -255,6 +286,11 @@ class TableFilter {
     let visibleCount = 0;
 
     rows.forEach((row, index) => {
+      // Store original index if not already set
+      if (!row.hasAttribute("data-original-index")) {
+        row.setAttribute("data-original-index", index.toString());
+      }
+
       // Skip header row if no tbody
       if (!tbody && index === 0) {
         return;
@@ -399,6 +435,74 @@ class TableFilter {
         }
       }
     });
+  }
+
+  sortTable(columnIndex) {
+    const tbody = this.table.querySelector("tbody");
+    if (!tbody) return;
+
+    const headers = this.table.querySelectorAll("thead th");
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+
+    // Determine sort direction
+    let direction = "asc";
+    if (this.sortState.columnIndex === columnIndex) {
+      if (this.sortState.direction === "asc") {
+        direction = "desc";
+      } else if (this.sortState.direction === "desc") {
+        // Reset sort
+        direction = null;
+      }
+    }
+
+    // Update sort state
+    this.sortState.columnIndex = direction ? columnIndex : null;
+    this.sortState.direction = direction;
+
+    // Remove sort classes from all headers
+    headers.forEach((h) => {
+      h.classList.remove("sort-asc", "sort-desc");
+    });
+
+    // Add sort class to current header
+    if (direction) {
+      headers[columnIndex].classList.add(`sort-${direction}`);
+    }
+
+    // Sort rows
+    if (direction) {
+      rows.sort((a, b) => {
+        const aCell = a.querySelectorAll("td")[columnIndex];
+        const bCell = b.querySelectorAll("td")[columnIndex];
+
+        if (!aCell || !bCell) return 0;
+
+        const aText = aCell.textContent.trim();
+        const bText = bCell.textContent.trim();
+
+        // Try numeric comparison first
+        const aNum = parseFloat(aText.replace(/[^0-9.-]/g, ""));
+        const bNum = parseFloat(bText.replace(/[^0-9.-]/g, ""));
+
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return direction === "asc" ? aNum - bNum : bNum - aNum;
+        }
+
+        // Fallback to string comparison
+        const comparison = aText.localeCompare(bText);
+        return direction === "asc" ? comparison : -comparison;
+      });
+    } else {
+      // Restore original order by sorting by original index
+      rows.sort((a, b) => {
+        const aIndex = parseInt(a.getAttribute("data-original-index") || "0");
+        const bIndex = parseInt(b.getAttribute("data-original-index") || "0");
+        return aIndex - bIndex;
+      });
+    }
+
+    // Re-append rows in sorted order
+    rows.forEach((row) => tbody.appendChild(row));
   }
 
   clearAllFilters() {
