@@ -39,6 +39,7 @@ class TableFilter {
     this.createFilterMarkup();
     this.initializeTableHeaders();
     this.attachEventListeners();
+    this.applyQueryStringFilters();
   }
 
   initializeTableHeaders() {
@@ -124,6 +125,9 @@ class TableFilter {
             <strong>Applied filters:</strong>
             <div class="d-inline-block pt-2" id="filterPillsContainer">
                 <span id="filterPills"></span>
+                <button type="button" id="copyFilterLink" class="filter-link-button" style="display: none;" title="Copy filter link">
+                    <i class="fas fa-link"></i> Copy filter link
+                </button>
                 <a href="#" id="clearAllFilters">Clear all</a>
             </div>
         </div>
@@ -278,6 +282,14 @@ class TableFilter {
         this.clearAllFilters();
       });
     }
+
+    // Copy filter link button
+    const copyButton = document.getElementById("copyFilterLink");
+    if (copyButton) {
+      copyButton.addEventListener("click", () => {
+        this.copyFilterURL();
+      });
+    }
   }
 
   updateClearButton() {
@@ -390,9 +402,21 @@ class TableFilter {
     if (pills.length > 0) {
       pillsContainer.innerHTML = pills.join("");
       appliedFiltersSection.classList.remove("hidden");
+
+      // Show copy button when there are active filters
+      const copyButton = document.getElementById("copyFilterLink");
+      if (copyButton) {
+        copyButton.style.display = "inline-flex";
+      }
     } else {
       pillsContainer.innerHTML = "";
       appliedFiltersSection.classList.add("hidden");
+
+      // Hide copy button when there are no active filters
+      const copyButton = document.getElementById("copyFilterLink");
+      if (copyButton) {
+        copyButton.style.display = "none";
+      }
     }
   }
 
@@ -517,6 +541,159 @@ class TableFilter {
 
     // Re-append rows in sorted order
     rows.forEach((row) => tbody.appendChild(row));
+  }
+
+  applyQueryStringFilters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let filtersApplied = false;
+
+    // Apply search keyword if present
+    const searchParam = urlParams.get("search");
+    if (searchParam && this.searchInput) {
+      this.searchInput.value = searchParam;
+      this.activeFilters.search = searchParam;
+      this.updateClearButton();
+      filtersApplied = true;
+    }
+
+    // Apply filters from query string
+    urlParams.forEach((value, key) => {
+      // Skip search parameter as it's already handled
+      if (key === "search") return;
+
+      // Check if this key matches a column filter
+      const filter = this.columnFilters.find((f) => f.columnName === key);
+
+      if (filter) {
+        const select = document.getElementById(filter.selectId);
+        if (!select) return;
+
+        // Check if the value exists in the dropdown options
+        const option = Array.from(select.options).find(
+          (opt) => opt.value === value.toLowerCase(),
+        );
+
+        if (option) {
+          // Initialize array if it doesn't exist
+          if (!this.activeFilters.columns[filter.columnIndex]) {
+            this.activeFilters.columns[filter.columnIndex] = [];
+          }
+          // Add value to array if not already present
+          if (
+            !this.activeFilters.columns[filter.columnIndex].includes(
+              value.toLowerCase(),
+            )
+          ) {
+            this.activeFilters.columns[filter.columnIndex].push(
+              value.toLowerCase(),
+            );
+          }
+          // Update dropdown options to hide selected values
+          this.updateDropdownOptions(filter.columnIndex);
+          filtersApplied = true;
+        }
+      }
+    });
+
+    // Apply filters and update UI if any filters were added
+    if (filtersApplied) {
+      this.filterTable();
+      this.updateFilterPills();
+    }
+  }
+
+  generateFilterURL() {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const params = new URLSearchParams();
+
+    // Add search keyword to query string
+    if (this.activeFilters.search) {
+      params.append("search", this.activeFilters.search);
+    }
+
+    // Add column filters to query string
+    for (const [columnIndex, filterValues] of Object.entries(
+      this.activeFilters.columns,
+    )) {
+      const filter = this.columnFilters.find(
+        (f) => f.columnIndex == columnIndex,
+      );
+      if (filter && Array.isArray(filterValues)) {
+        filterValues.forEach((value) => {
+          // Use the original column name as the key
+          params.append(filter.columnName, value);
+        });
+      }
+    }
+
+    const queryString = params.toString();
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+  }
+
+  copyFilterURL() {
+    const url = this.generateFilterURL();
+
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          this.showCopyFeedback(true);
+        })
+        .catch((err) => {
+          console.warn("Clipboard API failed, using fallback:", err);
+          this.fallbackCopyURL(url);
+        });
+    } else {
+      // Use fallback for older browsers
+      this.fallbackCopyURL(url);
+    }
+  }
+
+  fallbackCopyURL(url) {
+    const textArea = document.createElement("textarea");
+    textArea.value = url;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand("copy");
+      this.showCopyFeedback(successful);
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+      this.showCopyFeedback(false);
+    }
+
+    document.body.removeChild(textArea);
+  }
+
+  showCopyFeedback(success) {
+    const copyButton = document.getElementById("copyFilterLink");
+    if (!copyButton) return;
+
+    if (success) {
+      // Store original content
+      const originalHTML = copyButton.innerHTML;
+
+      // Show success state
+      copyButton.classList.add("copied");
+      copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      copyButton.disabled = true;
+
+      // Reset after 2 seconds
+      setTimeout(() => {
+        copyButton.classList.remove("copied");
+        copyButton.innerHTML = originalHTML;
+        copyButton.disabled = false;
+      }, 2000);
+    } else {
+      // Show error message
+      alert("Failed to copy link. Please try again.");
+    }
   }
 
   clearAllFilters() {

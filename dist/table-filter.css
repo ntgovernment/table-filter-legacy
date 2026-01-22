@@ -113,99 +113,158 @@
   color: #1f1f5f;
 }
 
-/**
- * Table Styles
- */
-
-table[data-table-filter] {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-/* Table Headers */
-table[data-table-filter] th {
-  padding: 16px 8px;
-  text-align: left;
-  background: white;
-  border-bottom: 1px solid #848491;
-  color: #1f1f5f;
-  font-size: 16px;
-  font-family: Lato, sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  line-height: 16px;
-  letter-spacing: 1px;
-  cursor: pointer;
-  user-select: none;
-  position: relative;
-}
-
-table[data-table-filter] th:hover {
-  background-color: #f5f5f7;
-}
-
-/* Sort Icons */
-table[data-table-filter] th .sort-icon {
+/* Copy filter link button */
+.filter-link-button {
   display: inline-flex;
-  flex-direction: column;
-  margin-left: 8px;
-  vertical-align: middle;
-  gap: 0;
-}
-
-table[data-table-filter] th .sort-arrow {
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-}
-
-table[data-table-filter] th .sort-arrow-up {
-  border-bottom: 5.38px solid #666774;
-  margin-bottom: 1px;
-}
-
-table[data-table-filter] th .sort-arrow-down {
-  border-top: 5.38px solid #666774;
-}
-
-table[data-table-filter] th.sort-asc .sort-arrow-up {
-  border-bottom-color: #1f1f5f;
-}
-
-table[data-table-filter] th.sort-desc .sort-arrow-down {
-  border-top-color: #1f1f5f;
-}
-
-/* Table Cells */
-table[data-table-filter] td {
-  padding: 16px 8px;
-  text-align: left;
-  border-bottom: 1px solid #d3d3d7;
-  color: #1f1e27;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
   font-size: 16px;
   font-family: Lato, sans-serif;
   font-weight: 400;
   line-height: 24px;
+  color: #1f1f5f;
+  background-color: white;
+  border: 1px solid #d3d3d7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-link-button:hover {
+  background-color: #e7e7ea;
+  border-color: #b8b8bf;
+}
+
+.filter-link-button:focus {
+  outline: 4px solid #ec8c58;
+  outline-offset: -1px;
+  border-color: #d3d3d7;
+}
+
+.filter-link-button:active {
+  background-color: #d3d3d7;
+}
+
+.filter-link-button.copied {
+  background-color: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.filter-link-button.copied:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.filter-link-button i {
+  font-size: 14px;
+}
+
+/**
+ * Table Styles
+ * Using higher specificity to override external stylesheets
+ */
+
+table.table[data-table-filter] {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-top: 1rem !important;
+}
+
+/* Table Headers */
+table.table[data-table-filter] th {
+  padding: 16px 8px !important;
+  text-align: left !important;
+  background: white !important;
+  border-bottom: 1px solid #848491 !important;
+  color: #1f1f5f !important;
+  font-size: 16px !important;
+  font-family: Lato, sans-serif !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  line-height: 16px !important;
+  letter-spacing: 1px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  position: relative !important;
+  /* Keep table-cell display for horizontal layout */
+  white-space: normal !important;
+  min-width: fit-content !important;
+  vertical-align: middle !important;
+}
+
+table.table[data-table-filter] th:hover {
+  background-color: #f5f5f7 !important;
+}
+
+/* Header Text - allows wrapping, floated left */
+table.table[data-table-filter] th .header-text {
+  float: left !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+  max-width: calc(100% - 30px) !important;
+}
+
+/* Header Icons - stays on the right, floated left next to text */
+table.table[data-table-filter] th .header-icons {
+  float: left !important;
+  margin-left: 8px !important;
+  display: inline-block !important;
+}
+
+/* Sort Icons */
+table.table[data-table-filter] th .sort-icon {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+table.table[data-table-filter] th .sort-arrow {
+  font-size: 10px !important;
+  color: #666774 !important;
+  line-height: 1 !important;
+}
+
+table.table[data-table-filter] th.sort-asc .sort-arrow-up {
+  color: #1f1f5f !important;
+}
+
+table.table[data-table-filter] th.sort-desc .sort-arrow-down {
+  color: #1f1f5f !important;
+}
+
+/* Table Cells */
+table.table[data-table-filter] td {
+  padding: 16px 8px !important;
+  text-align: left !important;
+  border-bottom: 1px solid #d3d3d7 !important;
+  color: #1f1e27 !important;
+  font-size: 16px !important;
+  font-family: Lato, sans-serif !important;
+  font-weight: 400 !important;
+  line-height: 24px !important;
 }
 
 /* Alternating Row Colors */
-table[data-table-filter] tbody tr:nth-child(odd) {
-  background-color: #f5f5f7;
+table.table[data-table-filter] tbody tr:nth-child(odd) {
+  background-color: #f5f5f7 !important;
 }
 
-table[data-table-filter] tbody tr:nth-child(even) {
-  background-color: white;
+table.table[data-table-filter] tbody tr:nth-child(even) {
+  background-color: white !important;
 }
 
-table[data-table-filter] tbody tr:hover {
-  opacity: 0.9;
+table.table[data-table-filter] tbody tr:hover {
+  opacity: 0.9 !important;
 }
 
 /* Hidden Rows */
-table[data-table-filter] tr[style*="display: none"] {
-  display: none;
+table.table[data-table-filter] tr[style*="display: none"] {
+  display: none !important;
 }
 
 /**
