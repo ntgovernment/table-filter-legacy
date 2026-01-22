@@ -36,6 +36,29 @@
   box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
 }
 
+/* Form select dropdown */
+.form-select {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+  -moz-padding-start: calc(0.75rem - 3px);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3e%3cpath fill=%27none%27 stroke=%27%23343a40%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27m2 5 6 6 6-6%27/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  border: 1px solid #ced4da;
+  /* border-radius: .375rem; */
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  appearance: none;
+}
+
 /* No results message */
 .table-filter-no-results {
   padding: 1rem;
@@ -76,20 +99,67 @@ table[data-table-filter] tr[style*="display: none"] {
   display: none;
 }
 
+/* Filter pills */
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 16px;
+  font-family: Lato, sans-serif;
+  font-weight: 400;
+  line-height: 24px;
+  color: #1f1f5f;
+  background-color: white;
+  border: 1px solid #d3d3d7;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.filter-pill-label {
+  text-align: center;
+}
+
+.filter-pill:hover {
+  background-color: #e7e7ea;
+}
+
+.filter-pill:focus {
+  outline: 4px solid #ec8c58;
+  outline-offset: -1px;
+  border-color: #d3d3d7;
+}
+
+.filter-pill-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  position: relative;
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+  color: #1f1f5f;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .table-filter-container {
     padding: 0.5rem;
   }
-  
+
   .table-filter-search {
     width: 100%;
   }
-  
+
   table[data-table-filter] {
     font-size: 0.875rem;
   }
-  
+
   table[data-table-filter] th,
   table[data-table-filter] td {
     padding: 0.5rem;

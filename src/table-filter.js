@@ -298,10 +298,10 @@ class TableFilter {
     // Add search pill
     if (this.activeFilters.search) {
       pills.push(`
-        <span class="badge bg-secondary me-2">
-          Search: ${this.activeFilters.search}
-          <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem;" onclick="window.tableFilterInstance?.clearSearchFilter()"></button>
-        </span>
+        <button type="button" class="filter-pill" tabindex="0" onclick="window.tableFilterInstance?.clearSearchFilter()" aria-label="Remove filter: ${this.activeFilters.search}">
+          <span class="filter-pill-label">${this.activeFilters.search}</span>
+          <span class="filter-pill-close" aria-hidden="true">×</span>
+        </button>
       `);
     }
 
@@ -314,10 +314,10 @@ class TableFilter {
       );
       if (filter) {
         pills.push(`
-          <span class="badge bg-secondary me-2">
-            ${filter.columnName}: ${filterValue}
-            <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem;" onclick="window.tableFilterInstance?.clearColumnFilter(${columnIndex})"></button>
-          </span>
+          <button type="button" class="filter-pill" tabindex="0" onclick="window.tableFilterInstance?.clearColumnFilter(${columnIndex})" aria-label="Remove filter: ${filterValue}">
+            <span class="filter-pill-label">${filterValue}</span>
+            <span class="filter-pill-close" aria-hidden="true">×</span>
+          </button>
         `);
       }
     }
