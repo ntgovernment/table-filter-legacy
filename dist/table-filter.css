@@ -1,0 +1,100 @@
+/**
+ * Table Filter Component Styles
+ * Styles for the table filtering component
+ */
+
+/* Filter container */
+.table-filter-container {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.table-filter-container label {
+  display: inline-block;
+  margin-right: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Search input */
+.table-filter-search {
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 300px;
+  max-width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.table-filter-search:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+/* No results message */
+.table-filter-no-results {
+  padding: 1rem;
+  margin-top: 1rem;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  text-align: center;
+}
+
+/* Table styling */
+table[data-table-filter] {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+table[data-table-filter] th,
+table[data-table-filter] td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table[data-table-filter] th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+table[data-table-filter] tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Hidden row state */
+table[data-table-filter] tr[style*="display: none"] {
+  display: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .table-filter-container {
+    padding: 0.5rem;
+  }
+  
+  .table-filter-search {
+    width: 100%;
+  }
+  
+  table[data-table-filter] {
+    font-size: 0.875rem;
+  }
+  
+  table[data-table-filter] th,
+  table[data-table-filter] td {
+    padding: 0.5rem;
+  }
+}
+
+
+/*# sourceMappingURL=table-filter.css.map*/
