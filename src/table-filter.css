@@ -3,10 +3,11 @@
  * Main stylesheet that imports all component styles
  */
 
-@import './styles/filter-container.css';
-@import './styles/search-input.css';
-@import './styles/dropdown.css';
-@import './styles/filter-pills.css';
-@import './styles/table.css';
-@import './styles/no-results.css';
-@import './styles/responsive.css';
+@import "./styles/filter-container.css";
+@import "./styles/search-input.css";
+@import "./styles/dropdown.css";
+@import "./styles/filter-pills.css";
+@import "./styles/table.css";
+@import "./styles/no-results.css";
+@import "./styles/pagination.css";
+@import "./styles/responsive.css";

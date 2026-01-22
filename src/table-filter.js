@@ -29,6 +29,20 @@ class TableFilter {
       direction: null, // 'asc' or 'desc'
     };
 
+    // Read pagination configuration from data attributes
+    const filterDiv = document.querySelector("[data-table-filter]");
+    const itemsPerPageAttr = filterDiv?.getAttribute(
+      "data-pagination-items-per-page",
+    );
+
+    this.paginationState = {
+      currentPage: 1,
+      itemsPerPage: itemsPerPageAttr ? parseInt(itemsPerPageAttr, 10) : 10,
+      totalPages: 1,
+      enabled: !!itemsPerPageAttr,
+      availableSizes: [10, 25, 50, 100],
+    };
+
     this.init();
   }
 
@@ -40,6 +54,9 @@ class TableFilter {
     this.initializeTableHeaders();
     this.attachEventListeners();
     this.applyQueryStringFilters();
+
+    // Apply pagination on initial load if no filters applied
+    this.filterTable();
   }
 
   initializeTableHeaders() {
@@ -228,6 +245,7 @@ class TableFilter {
     if (this.searchInput) {
       this.searchInput.addEventListener("input", (e) => {
         this.activeFilters.search = e.target.value;
+        this.paginationState.currentPage = 1; // Reset to first page
         this.filterTable();
         this.updateClearButton();
         this.updateFilterPills();
@@ -240,6 +258,7 @@ class TableFilter {
       clearInput.addEventListener("click", () => {
         this.searchInput.value = "";
         this.activeFilters.search = "";
+        this.paginationState.currentPage = 1; // Reset to first page
         this.filterTable();
         this.updateClearButton();
         this.updateFilterPills();
@@ -268,6 +287,7 @@ class TableFilter {
             // Update dropdown options to hide selected values
             this.updateDropdownOptions(filter.columnIndex);
           }
+          this.paginationState.currentPage = 1; // Reset to first page
           this.filterTable();
           this.updateFilterPills();
         });
@@ -309,7 +329,7 @@ class TableFilter {
     const rows = tbody
       ? tbody.querySelectorAll("tr")
       : this.table.querySelectorAll("tr");
-    let visibleCount = 0;
+    let visibleRows = [];
 
     rows.forEach((row, index) => {
       // Store original index if not already set
@@ -351,12 +371,52 @@ class TableFilter {
       }
 
       if (isVisible) {
-        row.style.display = "";
-        visibleCount++;
+        visibleRows.push(row);
       } else {
         row.style.display = "none";
       }
     });
+
+    const visibleCount = visibleRows.length;
+
+    // Apply pagination if enabled
+    if (this.paginationState.enabled && visibleCount > 0) {
+      // Calculate total pages
+      this.paginationState.totalPages = Math.ceil(
+        visibleCount / this.paginationState.itemsPerPage,
+      );
+
+      // Ensure current page is within bounds
+      if (this.paginationState.currentPage > this.paginationState.totalPages) {
+        this.paginationState.currentPage = 1;
+      }
+
+      // Calculate page boundaries
+      const startIndex =
+        (this.paginationState.currentPage - 1) *
+        this.paginationState.itemsPerPage;
+      const endIndex = startIndex + this.paginationState.itemsPerPage;
+
+      // Show/hide rows based on pagination
+      visibleRows.forEach((row, index) => {
+        if (index >= startIndex && index < endIndex) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+
+      // Render pagination controls
+      this.renderPaginationControls(visibleCount);
+    } else {
+      // No pagination - show all visible rows
+      visibleRows.forEach((row) => {
+        row.style.display = "";
+      });
+
+      // Remove pagination controls if they exist
+      this.removePaginationControls();
+    }
 
     this.updateNoResultsMessage(visibleCount === 0);
   }
@@ -450,6 +510,9 @@ class TableFilter {
     // Update dropdown options to show removed values
     this.updateDropdownOptions(columnIndex);
 
+    // Reset pagination to first page
+    this.paginationState.currentPage = 1;
+
     this.filterTable();
     this.updateFilterPills();
   }
@@ -496,6 +559,9 @@ class TableFilter {
     // Update sort state
     this.sortState.columnIndex = direction ? columnIndex : null;
     this.sortState.direction = direction;
+
+    // Reset pagination to first page when sorting
+    this.paginationState.currentPage = 1;
 
     // Remove sort classes from all headers
     headers.forEach((h) => {
@@ -556,10 +622,19 @@ class TableFilter {
       filtersApplied = true;
     }
 
+    // Apply page number if present (for pagination)
+    const pageParam = urlParams.get("page");
+    if (pageParam && this.paginationState.enabled) {
+      const pageNum = parseInt(pageParam, 10);
+      if (pageNum > 0) {
+        this.paginationState.currentPage = pageNum;
+      }
+    }
+
     // Apply filters from query string
     urlParams.forEach((value, key) => {
-      // Skip search parameter as it's already handled
-      if (key === "search") return;
+      // Skip search and page parameters as they're already handled
+      if (key === "search" || key === "page") return;
 
       // Check if this key matches a column filter
       const filter = this.columnFilters.find((f) => f.columnName === key);
@@ -624,6 +699,11 @@ class TableFilter {
           params.append(filter.columnName, value);
         });
       }
+    }
+
+    // Add current page if pagination is enabled and not on page 1
+    if (this.paginationState.enabled && this.paginationState.currentPage > 1) {
+      params.append("page", this.paginationState.currentPage.toString());
     }
 
     const queryString = params.toString();
@@ -714,9 +794,262 @@ class TableFilter {
       }
     });
 
+    // Reset pagination to first page
+    this.paginationState.currentPage = 1;
+
     this.filterTable();
     this.updateClearButton();
     this.updateFilterPills();
+  }
+
+  renderPaginationControls(visibleCount) {
+    // Remove existing pagination if present
+    this.removePaginationControls();
+
+    // Determine if mobile view
+    const isMobile = window.innerWidth <= 768;
+
+    // Generate pagination HTML
+    let paginationHTML;
+    if (isMobile) {
+      paginationHTML = this.generateMobilePaginationHTML(visibleCount);
+    } else {
+      paginationHTML = this.generatePaginationHTML(visibleCount);
+    }
+
+    // Create pagination container
+    const paginationContainer = document.createElement("div");
+    paginationContainer.id = "tablePaginationControls";
+    paginationContainer.className = "table-pagination-wrapper mt-3";
+    paginationContainer.innerHTML = paginationHTML;
+
+    // Insert after table
+    this.table.parentNode.insertBefore(
+      paginationContainer,
+      this.table.nextSibling,
+    );
+
+    // Attach event listeners to pagination controls
+    this.attachPaginationEventListeners();
+  }
+
+  removePaginationControls() {
+    const existingPagination = document.getElementById(
+      "tablePaginationControls",
+    );
+    if (existingPagination) {
+      existingPagination.remove();
+    }
+  }
+
+  generatePaginationHTML(visibleCount) {
+    const { currentPage, itemsPerPage, totalPages, availableSizes } =
+      this.paginationState;
+
+    // Calculate result range
+    const startResult =
+      visibleCount > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+    const endResult = Math.min(currentPage * itemsPerPage, visibleCount);
+
+    // Build page size selector
+    const pageSizeOptions = availableSizes
+      .map(
+        (size) =>
+          `<option value="${size}" ${size === itemsPerPage ? "selected" : ""}>${size}</option>`,
+      )
+      .join("");
+
+    const pageSizeSelector = `
+      <div class="page-size-control">
+        <label for="pageSizeSelect" class="page-size-label">Show:</label>
+        <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
+          ${pageSizeOptions}
+        </select>
+        <span class="results-info">Showing ${startResult}-${endResult} of ${visibleCount} results</span>
+      </div>
+    `;
+
+    // Build page navigation buttons
+    const pageButtons = this.buildPageButtons(currentPage, totalPages);
+
+    return `
+      <div class="pagination-container">
+        ${pageSizeSelector}
+        <nav aria-label="Table pagination" class="pagination-nav">
+          <ul class="pagination pagination-sm mb-0">
+            ${pageButtons}
+          </ul>
+        </nav>
+      </div>
+    `;
+  }
+
+  generateMobilePaginationHTML(visibleCount) {
+    const { currentPage, itemsPerPage, totalPages, availableSizes } =
+      this.paginationState;
+
+    // Calculate result range
+    const startResult =
+      visibleCount > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+    const endResult = Math.min(currentPage * itemsPerPage, visibleCount);
+
+    // Build page size selector
+    const pageSizeOptions = availableSizes
+      .map(
+        (size) =>
+          `<option value="${size}" ${size === itemsPerPage ? "selected" : ""}>${size}</option>`,
+      )
+      .join("");
+
+    const pageSizeSelector = `
+      <div class="page-size-control">
+        <label for="pageSizeSelect" class="page-size-label">Show:</label>
+        <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
+          ${pageSizeOptions}
+        </select>
+        <span class="results-info">Showing ${startResult}-${endResult} of ${visibleCount}</span>
+      </div>
+    `;
+
+    // Condensed page navigation (only prev/current/next)
+    const mobileButtons = `
+      <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
+        <button class="page-link" data-page="${currentPage - 1}" ${currentPage === 1 ? "disabled" : ""} aria-label="Previous">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </li>
+      <li class="page-item active">
+        <span class="page-link">${currentPage} of ${totalPages}</span>
+      </li>
+      <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
+        <button class="page-link" data-page="${currentPage + 1}" ${currentPage === totalPages ? "disabled" : ""} aria-label="Next">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </li>
+    `;
+
+    return `
+      <div class="pagination-container pagination-mobile">
+        ${pageSizeSelector}
+        <nav aria-label="Table pagination" class="pagination-nav">
+          <ul class="pagination pagination-sm mb-0">
+            ${mobileButtons}
+          </ul>
+        </nav>
+      </div>
+    `;
+  }
+
+  buildPageButtons(currentPage, totalPages) {
+    const buttons = [];
+
+    // Previous button (tertiary style)
+    buttons.push(`
+      <li class="page-item page-item-nav ${currentPage === 1 ? "disabled" : ""}">
+        <button class="page-link page-link-nav" data-page="${currentPage - 1}" ${currentPage === 1 ? "disabled" : ""} aria-label="Previous">
+          <span class="page-nav-text">Previous</span>
+        </button>
+      </li>
+    `);
+
+    // Page number buttons with ellipsis logic
+    const pageNumbers = this.getPageNumbers(currentPage, totalPages);
+
+    pageNumbers.forEach((pageNum) => {
+      if (pageNum === "...") {
+        // Non-clickable ellipsis (plain text)
+        buttons.push(`
+          <li class="page-item page-item-ellipsis">
+            <span class="page-ellipsis">...</span>
+          </li>
+        `);
+      } else {
+        buttons.push(`
+          <li class="page-item ${pageNum === currentPage ? "active" : ""}">
+            <button class="page-link page-link-number" data-page="${pageNum}" data-selected="${pageNum === currentPage ? "True" : "False"}" ${pageNum === currentPage ? 'aria-current="page"' : ""}>
+              ${pageNum}
+            </button>
+          </li>
+        `);
+      }
+    });
+
+    // Next button (tertiary style with chevron) (tertiary style with chevron)
+    buttons.push(`
+      <li class="page-item page-item-nav ${currentPage === totalPages ? "disabled" : ""}">
+        <button class="page-link page-link-nav" data-page="${currentPage + 1}" ${currentPage === totalPages ? "disabled" : ""} aria-label="Next">
+          <span class="page-nav-text">Next</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </li>
+    `);
+
+    return buttons.join("");
+  }
+
+  getPageNumbers(currentPage, totalPages) {
+    const pages = [];
+
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push("...");
+      }
+
+      // Show pages around current page
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push("...");
+      }
+
+      // Always show last page
+      pages.push(totalPages);
+    }
+
+    return pages;
+  }
+
+  attachPaginationEventListeners() {
+    // Page size change handler
+    const pageSizeSelect = document.getElementById("pageSizeSelect");
+    if (pageSizeSelect) {
+      pageSizeSelect.addEventListener("change", (e) => {
+        this.paginationState.itemsPerPage = parseInt(e.target.value, 10);
+        this.paginationState.currentPage = 1; // Reset to first page
+        this.filterTable();
+      });
+    }
+
+    // Page navigation button handlers
+    const pageButtons = document.querySelectorAll(
+      ".pagination-container .page-link[data-page]",
+    );
+    pageButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        const newPage = parseInt(button.getAttribute("data-page"), 10);
+        if (newPage >= 1 && newPage <= this.paginationState.totalPages) {
+          this.paginationState.currentPage = newPage;
+          this.filterTable();
+
+          // Scroll to top of table
+          this.table.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    });
   }
 
   updateNoResultsMessage(show) {
