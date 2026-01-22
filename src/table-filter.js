@@ -105,7 +105,8 @@ class TableFilter {
 document.addEventListener('DOMContentLoaded', () => {
   const tables = document.querySelectorAll('[data-table-filter]');
   tables.forEach(table => {
-    new TableFilter(`#${table.id}` || table);
+    const selector = table.id ? `#${table.id}` : table;
+    new TableFilter(selector);
   });
 });
 
