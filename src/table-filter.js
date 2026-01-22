@@ -50,14 +50,28 @@ class TableFilter {
       // Skip if header already has sort icon
       if (header.querySelector(".sort-icon")) return;
 
-      // Add sort icon
+      // Wrap existing text content in a div
+      const textContent = header.innerHTML;
+      header.innerHTML = "";
+
+      const textDiv = document.createElement("div");
+      textDiv.className = "header-text";
+      textDiv.innerHTML = textContent;
+      header.appendChild(textDiv);
+
+      // Add sort icon in its own div
+      const iconDiv = document.createElement("div");
+      iconDiv.className = "header-icons";
+
       const sortIcon = document.createElement("span");
       sortIcon.className = "sort-icon";
       sortIcon.innerHTML = `
-        <span class="sort-arrow sort-arrow-up"></span>
-        <span class="sort-arrow sort-arrow-down"></span>
+        <i class="fas fa-chevron-up sort-arrow sort-arrow-up"></i>
+        <i class="fas fa-chevron-down sort-arrow sort-arrow-down"></i>
       `;
-      header.appendChild(sortIcon);
+
+      iconDiv.appendChild(sortIcon);
+      header.appendChild(iconDiv);
 
       // Add click handler
       header.addEventListener("click", () => this.sortTable(index));
