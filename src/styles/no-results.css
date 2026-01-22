@@ -1,13 +1,72 @@
 /**
- * No Results Message Styles
+ * No Results Message Styles - NT Government Information Alert
  */
 
 .table-filter-no-results {
-  padding: 1rem;
+  width: 100%;
+  background: var(--clr-bg-default, white);
+  outline: 1px var(--clr-status-info, #107cc0) solid;
+  outline-offset: -1px;
+  justify-content: flex-start;
+  align-items: center;
+  display: inline-flex;
   margin-top: 1rem;
-  background-color: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 4px;
-  color: #856404;
-  text-align: center;
+}
+
+.info-alert-bar {
+  width: 8px;
+  align-self: stretch;
+  background: #107cc0;
+}
+
+.info-alert-content {
+  flex: 1 1 0;
+  padding: 24px;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  display: inline-flex;
+}
+
+.info-alert-header {
+  align-self: stretch;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+  display: inline-flex;
+}
+
+.info-alert-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.info-alert-text {
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+  display: inline-flex;
+}
+
+.info-alert-title {
+  color: var(--clr-text-default, #1f1e27);
+  font-size: 24px;
+  font-family: Lato, sans-serif;
+  font-weight: 700;
+  line-height: 28px;
+  word-wrap: break-word;
+}
+
+.info-alert-message {
+  align-self: stretch;
+  color: var(--clr-text-default, #1f1e27);
+  font-size: 16px;
+  font-family: Lato, sans-serif;
+  font-weight: 400;
+  line-height: 24px;
+  word-wrap: break-word;
 }
