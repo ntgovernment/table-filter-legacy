@@ -72,7 +72,7 @@ class TableFilter {
     </div>
 
     <!-- Filter dropdowns will be generated dynamically -->
-    <div id="filterControls" class="d-flex flex-nowrap gap-2 col-lg-8"></div>
+    <div id="filterControls" class="d-flex flex-nowrap col-lg-8" style="gap: 16px;"></div>
 
     <div class="mt-3 hidden" id="applied-filters">
         <div class="filter-option" id="active-filters">
@@ -203,10 +203,21 @@ class TableFilter {
       if (select) {
         select.addEventListener("change", (e) => {
           const value = e.target.value;
-          if (value === "all") {
-            delete this.activeFilters.columns[filter.columnIndex];
-          } else {
-            this.activeFilters.columns[filter.columnIndex] = value;
+          if (value !== "all") {
+            // Initialize array if it doesn't exist
+            if (!this.activeFilters.columns[filter.columnIndex]) {
+              this.activeFilters.columns[filter.columnIndex] = [];
+            }
+            // Add value to array if not already present
+            if (
+              !this.activeFilters.columns[filter.columnIndex].includes(value)
+            ) {
+              this.activeFilters.columns[filter.columnIndex].push(value);
+            }
+            // Reset dropdown to "all" after adding filter
+            e.target.value = "all";
+            // Update dropdown options to hide selected values
+            this.updateDropdownOptions(filter.columnIndex);
           }
           this.filterTable();
           this.updateFilterPills();
@@ -261,14 +272,15 @@ class TableFilter {
 
       // Check column filters
       if (isVisible) {
-        for (const [columnIndex, filterValue] of Object.entries(
+        for (const [columnIndex, filterValues] of Object.entries(
           this.activeFilters.columns,
         )) {
           const cells = row.querySelectorAll("td");
           const cell = cells[columnIndex];
-          if (cell) {
+          if (cell && filterValues.length > 0) {
             const cellText = cell.textContent.trim().toLowerCase();
-            if (cellText !== filterValue) {
+            // OR logic: row must match at least ONE of the filter values for this column
+            if (!filterValues.includes(cellText)) {
               isVisible = false;
               break;
             }
@@ -306,19 +318,22 @@ class TableFilter {
     }
 
     // Add column filter pills
-    for (const [columnIndex, filterValue] of Object.entries(
+    for (const [columnIndex, filterValues] of Object.entries(
       this.activeFilters.columns,
     )) {
       const filter = this.columnFilters.find(
         (f) => f.columnIndex == columnIndex,
       );
-      if (filter) {
-        pills.push(`
-          <button type="button" class="filter-pill" tabindex="0" onclick="window.tableFilterInstance?.clearColumnFilter(${columnIndex})" aria-label="Remove filter: ${filterValue}">
-            <span class="filter-pill-label">${filterValue}</span>
-            <span class="filter-pill-close" aria-hidden="true">×</span>
-          </button>
-        `);
+      if (filter && Array.isArray(filterValues)) {
+        // Create a pill for each filter value (grouped by column)
+        filterValues.forEach((filterValue) => {
+          pills.push(`
+            <button type="button" class="filter-pill" tabindex="0" onclick="window.tableFilterInstance?.clearColumnFilter(${columnIndex}, '${filterValue}')" aria-label="Remove filter: ${filterValue}">
+              <span class="filter-pill-label">${filterValue}</span>
+              <span class="filter-pill-close" aria-hidden="true">×</span>
+            </button>
+          `);
+        });
       }
     }
 
@@ -339,20 +354,51 @@ class TableFilter {
     this.updateFilterPills();
   }
 
-  clearColumnFilter(columnIndex) {
-    delete this.activeFilters.columns[columnIndex];
-
-    // Reset the select dropdown
-    const filter = this.columnFilters.find((f) => f.columnIndex == columnIndex);
-    if (filter) {
-      const select = document.getElementById(filter.selectId);
-      if (select) {
-        select.value = "all";
+  clearColumnFilter(columnIndex, filterValue = null) {
+    if (filterValue === null) {
+      // Clear all filters for this column
+      delete this.activeFilters.columns[columnIndex];
+    } else {
+      // Remove specific filter value from the array
+      const filters = this.activeFilters.columns[columnIndex];
+      if (filters) {
+        const index = filters.indexOf(filterValue);
+        if (index > -1) {
+          filters.splice(index, 1);
+        }
+        // If array is empty, delete the column entry
+        if (filters.length === 0) {
+          delete this.activeFilters.columns[columnIndex];
+        }
       }
     }
 
+    // Update dropdown options to show removed values
+    this.updateDropdownOptions(columnIndex);
+
     this.filterTable();
     this.updateFilterPills();
+  }
+
+  updateDropdownOptions(columnIndex) {
+    const filter = this.columnFilters.find((f) => f.columnIndex == columnIndex);
+    if (!filter) return;
+
+    const select = document.getElementById(filter.selectId);
+    if (!select) return;
+
+    const selectedValues = this.activeFilters.columns[columnIndex] || [];
+
+    // Show/hide options based on whether they're selected
+    Array.from(select.options).forEach((option) => {
+      if (option.value !== "all") {
+        if (selectedValues.includes(option.value)) {
+          option.style.display = "none";
+        } else {
+          option.style.display = "";
+        }
+      }
+    });
   }
 
   clearAllFilters() {
@@ -366,6 +412,10 @@ class TableFilter {
       const select = document.getElementById(filter.selectId);
       if (select) {
         select.value = "all";
+        // Show all options again
+        Array.from(select.options).forEach((option) => {
+          option.style.display = "";
+        });
       }
     });
 
