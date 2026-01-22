@@ -47,3 +47,53 @@
   line-height: 1;
   color: #1f1f5f;
 }
+
+/* Copy filter link button */
+.filter-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 16px;
+  font-family: Lato, sans-serif;
+  font-weight: 400;
+  line-height: 24px;
+  color: #1f1f5f;
+  background-color: white;
+  border: 1px solid #d3d3d7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-link-button:hover {
+  background-color: #e7e7ea;
+  border-color: #b8b8bf;
+}
+
+.filter-link-button:focus {
+  outline: 4px solid #ec8c58;
+  outline-offset: -1px;
+  border-color: #d3d3d7;
+}
+
+.filter-link-button:active {
+  background-color: #d3d3d7;
+}
+
+.filter-link-button.copied {
+  background-color: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.filter-link-button.copied:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.filter-link-button i {
+  font-size: 14px;
+}

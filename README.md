@@ -8,12 +8,17 @@ A simple, accessible table filtering component for Squiz Matrix and legacy gover
 
 ## Features
 
-- Simple text-based filtering
-- Auto-initialization via `data-table-filter` attribute
-- Responsive design
-- No dependencies
-- UMD module format for maximum compatibility
-- Compiled and ready to use
+- **Text Search**: Real-time search across all table columns
+- **Column Filters**: Multi-select dropdown filters for specific columns
+- **Sortable Columns**: Click column headers to sort ascending/descending
+- **Pagination**: Configurable items per page with navigation controls
+- **Filter Pills**: Visual display of active filters with individual removal
+- **URL-Based Sharing**: Share filter states via URL query parameters (including search keywords)
+- **Auto-initialization**: Automatic setup via `data-table-filter` attribute
+- **Responsive Design**: Mobile-friendly interface
+- **No Dependencies**: Pure vanilla JavaScript
+- **UMD Module Format**: Works with AMD, CommonJS, and global scope
+- **Compiled and Ready**: Pre-built files in `dist/` folder
 
 ## Installation
 
@@ -22,7 +27,7 @@ A simple, accessible table filtering component for Squiz Matrix and legacy gover
 Include the compiled CSS and JS files in your HTML:
 
 ```html
-<link rel="stylesheet" href="dist/table-filter.css">
+<link rel="stylesheet" href="dist/table-filter.css" />
 <script src="dist/table-filter.js"></script>
 ```
 
@@ -44,12 +49,15 @@ npm run watch
 
 ## Usage
 
-### Automatic initialization
+### Basic Setup
 
-Add the `data-table-filter` attribute to any table:
+Add the `data-table-filter` attribute to enable filtering:
 
 ```html
-<table id="my-table" data-table-filter>
+<!-- Minimal setup (search only) -->
+<div data-table-filter data-table-id="my-table"></div>
+
+<table id="my-table" class="table table-striped">
   <thead>
     <tr>
       <th>Name</th>
@@ -68,16 +76,77 @@ Add the `data-table-filter` attribute to any table:
 </table>
 ```
 
-### Manual initialization
+### Advanced Configuration
+
+Use data attributes to enable additional features:
+
+```html
+<div
+  data-table-filter
+  data-table-id="findings-table"
+  data-search-placeholder="Search by name, location..."
+  data-column-filters="Department; Location"
+  data-pagination-items-per-page="25"
+  data-default-column="Name"
+  data-order="Ascending"
+></div>
+
+<table id="findings-table" class="table table-striped">
+  <!-- table content -->
+</table>
+```
+
+### Data Attributes Reference
+
+| Attribute                        | Required | Description                                                         | Example                                |
+| -------------------------------- | -------- | ------------------------------------------------------------------- | -------------------------------------- |
+| `data-table-filter`              | Yes      | Enables the filter component                                        | `data-table-filter`                    |
+| `data-table-id`                  | Yes      | ID of the table to filter                                           | `data-table-id="my-table"`             |
+| `data-search-placeholder`        | No       | Placeholder text for search input                                   | `data-search-placeholder="Search..."`  |
+| `data-column-filters`            | No       | Semicolon-separated list of column names to create dropdown filters | `data-column-filters="Year; Category"` |
+| `data-pagination-items-per-page` | No       | Number of rows per page (enables pagination)                        | `data-pagination-items-per-page="10"`  |
+| `data-default-column`            | No       | Column name to sort by default                                      | `data-default-column="Date"`           |
+| `data-order`                     | No       | Default sort order: `Ascending` or `Descending`                     | `data-order="Descending"`              |
+
+### URL-Based Filter Sharing
+
+The component automatically generates shareable URLs that preserve filter state:
+
+**Features:**
+
+- Click "Copy filter link" button to copy current filter state to clipboard
+- Share URLs with colleagues to display the same filtered view
+- Supports search keywords and column filters in URL parameters
+- Auto-applies filters when loading a page with filter parameters
+
+**Example URLs:**
+
+```
+# Search only
+https://example.com/findings?search=walker
+
+# Column filter only
+https://example.com/findings?Year%20of%20finding=2024
+
+# Combined filters
+https://example.com/findings?search=fire&Category=inquest%20findings&Year%20of%20finding=2023
+```
+
+**Query String Format:**
+
+- `search` - Search keyword
+- Column names as keys - Filter values (multiple values create multiple parameters)
+
+### Manual Initialization
 
 ```javascript
 // Initialize with default options
-const filter = new TableFilter('#my-table');
+const filter = new TableFilter("#my-table");
 
 // Initialize with custom options
-const filter = new TableFilter('#my-table', {
-  searchInputClass: 'custom-search-class',
-  noResultsClass: 'custom-no-results-class'
+const filter = new TableFilter("#my-table", {
+  searchInputClass: "custom-search-class",
+  noResultsClass: "custom-no-results-class",
 });
 ```
 
@@ -94,6 +163,7 @@ This will open your browser at `http://localhost:8080` with the demo page.
 ## Build Output
 
 The build process generates:
+
 - `dist/table-filter.js` - Minified JavaScript (UMD format)
 - `dist/table-filter.css` - Compiled CSS
 - `dist/index.html` - Demo page
@@ -103,7 +173,48 @@ The build process generates:
 
 Works in all modern browsers and IE11+.
 
+**Note:** URL-based filter sharing uses modern APIs:
+
+- `URLSearchParams` - Supported in all modern browsers and IE11 (with polyfill)
+- `navigator.clipboard` - Falls back to `document.execCommand` for older browsers
+
+## Component APIs
+
+### Public Methods
+
+```javascript
+const tableFilter = new TableFilter("#my-table");
+
+// Programmatically filter the table
+tableFilter.filterTable();
+
+// Clear all active filters
+tableFilter.clearAllFilters();
+
+// Sort by column index
+tableFilter.sortTable(columnIndex);
+
+// Generate shareable URL with current filters
+const url = tableFilter.generateFilterURL();
+
+// Copy filter URL to clipboard
+tableFilter.copyFilterURL();
+```
+
+### Active Filter State
+
+Access the current filter state:
+
+```javascript
+// Get active filters object
+const filters = tableFilter.activeFilters;
+// { search: "walker", columns: { 1: ["2024"], 3: ["inquest findings"] } }
+
+// Get sort state
+const sortState = tableFilter.sortState;
+// { columnIndex: 2, direction: "asc" }
+```
+
 ## License
 
 Apache-2.0
-

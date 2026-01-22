@@ -3,7 +3,11 @@
  * Handles creation of filter UI markup
  */
 
-export function createFilterMarkup(table, searchPlaceholder, columnFiltersArray) {
+export function createFilterMarkup(
+  table,
+  searchPlaceholder,
+  columnFiltersArray,
+) {
   const container = document.createElement("div");
   container.id = "ntgc-page-filters";
   container.className = "row mt-5 d-print-none";
@@ -21,7 +25,7 @@ export function createFilterMarkup(table, searchPlaceholder, columnFiltersArray)
     <!-- Filter dropdowns will be generated dynamically -->
     <div id="filterControls" class="d-flex flex-nowrap col-lg-8" style="gap: 16px;"></div>
 
-    <div class="mt-3 hidden" id="applied-filters">
+    <div class="m-3 hidden" id="applied-filters">
         <div class="filter-option" id="active-filters">
             <strong>Applied filters:</strong>
             <div class="d-inline-block pt-2" id="filterPillsContainer">
