@@ -430,7 +430,7 @@ class TableFilter {
         <div>
             <select name="select-input-${index + 1}" id="${selectId}" class="form-select rounded-0">
                 <option value="all" selected="">${placeholder}</option>
-                ${values.map((val) => `<option value="${val.toLowerCase()}">${val}</option>`).join("")}
+                ${values.map((val) => `<option value="${val}">${val}</option>`).join("")}
             </select>
         </div>
       `;
@@ -595,7 +595,7 @@ class TableFilter {
         )) {
           const cell = rowData.cells[columnIndex];
           if (cell && filterValues.length > 0) {
-            const cellText = cell.lowerText;
+            const cellText = cell.text;
             // OR logic: row must match at least ONE of the filter values for this column
             if (!filterValues.includes(cellText)) {
               isVisible = false;
@@ -814,7 +814,7 @@ class TableFilter {
 
         // Check if the value exists in the dropdown options
         const option = Array.from(select.options).find(
-          (opt) => opt.value === value.toLowerCase(),
+          (opt) => opt.value === value,
         );
 
         if (option) {
@@ -823,14 +823,8 @@ class TableFilter {
             this.activeFilters.columns[filter.columnIndex] = [];
           }
           // Add value to array if not already present
-          if (
-            !this.activeFilters.columns[filter.columnIndex].includes(
-              value.toLowerCase(),
-            )
-          ) {
-            this.activeFilters.columns[filter.columnIndex].push(
-              value.toLowerCase(),
-            );
+          if (!this.activeFilters.columns[filter.columnIndex].includes(value)) {
+            this.activeFilters.columns[filter.columnIndex].push(value);
           }
           // Update dropdown options to hide selected values
           this.updateDropdownOptions(filter.columnIndex);
