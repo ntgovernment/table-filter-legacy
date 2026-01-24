@@ -339,7 +339,7 @@ class TableFilter {
     // Create the main filter container
     const container = document.createElement("div");
     container.id = "ntgc-page-filters";
-    container.className = "row mt-5 d-print-none";
+    container.className = "row mx-1 d-print-none";
 
     // Get data attributes
     const filterDiv = document.querySelector("[data-table-filter]");
@@ -356,17 +356,20 @@ class TableFilter {
 
     // Build the markup
     container.innerHTML = `
-    <!-- Free text search filter -->
-    <div class="filter-option mb-1 col-lg-4" id="text-question">
-        <label for="searchInput">Search <span class="search-help" title="Search syntax: ''exact phrase'', fire AND water, fire water (OR)" style="cursor: help;">ⓘ</span></label>
-        <div class="input-group" style="position: relative;">
-            <input type="text" name="project_title" id="searchInput" class="form-control rounded-0" placeholder="${searchPlaceholder}" autocomplete="off">
-            <span class="clear-input" id="clearInput" hidden=""></span>
+    <!-- Filter inputs wrapper -->
+    <div class="filter-inputs-wrapper">
+        <!-- Free text search filter -->
+        <div class="filter-option mb-1" id="text-question">
+            <label for="searchInput">Search <span class="search-help" title="Search syntax: ''exact phrase'', fire AND water, fire water (OR)" style="cursor: help;">ⓘ</span></label>
+            <div class="input-group" style="position: relative;">
+                <input type="text" name="project_title" id="searchInput" class="form-control rounded-0" placeholder="${searchPlaceholder}" autocomplete="off">
+                <span class="clear-input" id="clearInput" hidden=""></span>
+            </div>
         </div>
-    </div>
 
-    <!-- Filter dropdowns will be generated dynamically -->
-    <div id="filterControls" class="d-flex flex-nowrap col-lg-8" style="gap: 16px;"></div>
+        <!-- Filter dropdowns will be generated dynamically -->
+        <div id="filterControls" class="filter-controls"></div>
+    </div>
 
     <div class="m-3 w-100 hidden" id="applied-filters">
         <div class="filter-option d-flex justify-content-between align-items-start" id="active-filters">
@@ -417,8 +420,7 @@ class TableFilter {
 
       // Create the select dropdown
       const filterDiv = document.createElement("div");
-      filterDiv.className = "filter-option flex-fill";
-      filterDiv.style.cssText = "flex: 1 1 0; min-width: 0;";
+      filterDiv.className = "filter-option mb-1";
 
       const selectId = `selectInput${index + 1}`;
       const label =

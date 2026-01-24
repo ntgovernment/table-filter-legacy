@@ -18,6 +18,25 @@
   color: #333;
 }
 
+/* Filter inputs wrapper - equal width layout */
+.filter-inputs-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+/* All filter options have equal width */
+.filter-inputs-wrapper .filter-option {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Filter controls container */
+.filter-controls {
+  display: contents;
+}
+
 /**
  * Search Input Styles
  */
@@ -44,7 +63,7 @@
 .search-help {
   display: inline-block;
   margin-left: 4px;
-  margin-top: -6px;
+  margin-top: -9px;
   font-size: 20px;
   color: #666;
   opacity: 0.6;
@@ -149,6 +168,7 @@
   border: 1px solid #d3d3d7;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 170px;
 }
 
 .filter-link-button:hover {
@@ -613,6 +633,17 @@ table.table[data-table-filter] tr[style*="display: none"] {
 
   .table-filter-search {
     width: 100%;
+  }
+
+  /* Make all filter elements 100% width on small screens */
+  .filter-inputs-wrapper .filter-option {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  /* Make copy filter link overflow to next row on mobile */
+  #active-filters {
+    flex-wrap: wrap;
   }
 
   table[data-table-filter] {

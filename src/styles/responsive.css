@@ -11,6 +11,17 @@
     width: 100%;
   }
 
+  /* Make all filter elements 100% width on small screens */
+  .filter-inputs-wrapper .filter-option {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  /* Make copy filter link overflow to next row on mobile */
+  #active-filters {
+    flex-wrap: wrap;
+  }
+
   table[data-table-filter] {
     font-size: 0.875rem;
   }
