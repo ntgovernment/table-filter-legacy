@@ -3,6 +3,11 @@
  * A simple table filtering component for legacy agency sites
  */
 
+import {
+  initializeTableHeaders as initSortHeaders,
+  sortTable as performSort,
+} from "./components/SortTable.js";
+
 class TableFilter {
   constructor(tableSelector, options = {}) {
     this.table = document.querySelector(tableSelector);
@@ -270,40 +275,8 @@ class TableFilter {
   }
 
   initializeTableHeaders() {
-    const thead = this.table.querySelector("thead");
-    if (!thead) return;
-
-    const headers = thead.querySelectorAll("th");
-    headers.forEach((header, index) => {
-      // Skip if header already has sort icon
-      if (header.querySelector(".sort-icon")) return;
-
-      // Wrap existing text content in a div
-      const textContent = header.innerHTML;
-      header.innerHTML = "";
-
-      const textDiv = document.createElement("div");
-      textDiv.className = "header-text";
-      textDiv.innerHTML = textContent;
-      header.appendChild(textDiv);
-
-      // Add sort icon in its own div
-      const iconDiv = document.createElement("div");
-      iconDiv.className = "header-icons";
-
-      const sortIcon = document.createElement("span");
-      sortIcon.className = "sort-icon";
-      sortIcon.innerHTML = `
-        <i class="fas fa-chevron-up sort-arrow sort-arrow-up"></i>
-        <i class="fas fa-chevron-down sort-arrow sort-arrow-down"></i>
-      `;
-
-      iconDiv.appendChild(sortIcon);
-      header.appendChild(iconDiv);
-
-      // Add click handler
-      header.addEventListener("click", () => this.sortTable(index));
-    });
+    // Use imported function from SortTable component
+    initSortHeaders(this.table, (columnIndex) => this.sortTable(columnIndex));
   }
 
   createFilterMarkup() {
@@ -739,79 +712,8 @@ class TableFilter {
   }
 
   sortTable(columnIndex) {
-    if (!this.cache.tbody) return;
-
-    const headers = this.table.querySelectorAll("thead th");
-
-    // Determine sort direction
-    let direction = "asc";
-    if (this.sortState.columnIndex === columnIndex) {
-      if (this.sortState.direction === "asc") {
-        direction = "desc";
-      } else if (this.sortState.direction === "desc") {
-        // Reset sort
-        direction = null;
-      }
-    }
-
-    // Update sort state
-    this.sortState.columnIndex = direction ? columnIndex : null;
-    this.sortState.direction = direction;
-
-    // Reset pagination to first page when sorting
-    this.paginationState.currentPage = 1;
-
-    // Remove sort classes from all headers
-    headers.forEach((h) => {
-      h.classList.remove("sort-asc", "sort-desc");
-    });
-
-    // Add sort class to current header
-    if (direction) {
-      headers[columnIndex].classList.add(`sort-${direction}`);
-    }
-
-    // Sort using cached row data
-    const sortedRows = [...this.cache.rowData];
-
-    if (direction) {
-      const isDateColumn = this.cache.dateColumns.includes(columnIndex);
-
-      sortedRows.sort((a, b) => {
-        const aCell = a.cells[columnIndex];
-        const bCell = b.cells[columnIndex];
-
-        if (!aCell || !bCell) return 0;
-
-        // Use date sorting for date columns
-        if (isDateColumn && aCell.dateValue && bCell.dateValue) {
-          const comparison = aCell.dateValue.localeCompare(bCell.dateValue);
-          return direction === "asc" ? comparison : -comparison;
-        }
-
-        // Use numeric comparison if available
-        if (aCell.numericValue !== null && bCell.numericValue !== null) {
-          return direction === "asc"
-            ? aCell.numericValue - bCell.numericValue
-            : bCell.numericValue - aCell.numericValue;
-        }
-
-        // Fallback to text comparison
-        const comparison = aCell.text.localeCompare(bCell.text);
-        return direction === "asc" ? comparison : -comparison;
-      });
-    } else {
-      // Restore original order using original index
-      sortedRows.sort((a, b) => a.originalIndex - b.originalIndex);
-    }
-
-    // Re-append rows in sorted order
-    sortedRows.forEach((rowData) =>
-      this.cache.tbody.appendChild(rowData.element),
-    );
-
-    // Re-apply filtering to update visibility
-    this.filterTable();
+    // Use imported function from SortTable component
+    performSort(this, columnIndex);
   }
 
   applyQueryStringFilters() {
