@@ -43,12 +43,28 @@ class TableFilter {
       availableSizes: [10, 25, 50, 100],
     };
 
+    // Initialize cache structure
+    this.cache = {
+      tbody: null,
+      thead: null,
+      headerCells: [],
+      allRows: [],
+      rowData: [],
+      columnValues: {},
+      columnCount: 0,
+      rowCount: 0,
+      dateColumns: [], // Track which columns contain dates
+    };
+
     this.init();
   }
 
   init() {
     // Add data-table-filter attribute to the table for CSS targeting
     this.table.setAttribute("data-table-filter", "");
+
+    // Cache table data FIRST (before any manipulation)
+    this.cacheTableData();
 
     this.createFilterMarkup();
     this.initializeTableHeaders();
@@ -57,6 +73,200 @@ class TableFilter {
 
     // Apply pagination on initial load if no filters applied
     this.filterTable();
+  }
+
+  /**
+   * Cache table data on page load for performance
+   * Stores DOM references, cell text, and precomputes column values
+   */
+  cacheTableData() {
+    // Cache header and body elements
+    this.cache.tbody = this.table.querySelector("tbody");
+    this.cache.thead = this.table.querySelector("thead");
+
+    if (!this.cache.tbody) {
+      console.warn("No tbody found in table");
+      return;
+    }
+
+    // Cache header cells and detect date columns
+    if (this.cache.thead) {
+      this.cache.headerCells = Array.from(
+        this.cache.thead.querySelectorAll("th"),
+      );
+      this.cache.columnCount = this.cache.headerCells.length;
+
+      // Detect date columns by checking if header contains "date"
+      this.cache.headerCells.forEach((header, index) => {
+        const headerText = header.textContent.toLowerCase();
+        if (headerText.includes("date")) {
+          this.cache.dateColumns.push(index);
+        }
+      });
+    }
+
+    // Cache all rows
+    const rows = this.cache.tbody.querySelectorAll("tr");
+    this.cache.allRows = Array.from(rows);
+    this.cache.rowCount = rows.length;
+
+    // Process and cache row data
+    rows.forEach((row, rowIndex) => {
+      // Set original index attribute
+      row.setAttribute("data-original-index", rowIndex.toString());
+
+      const cells = row.querySelectorAll("td");
+      const cellData = Array.from(cells).map((cell, colIndex) => {
+        let text = cell.textContent.trim();
+        let dateValue = null;
+
+        // Process date columns
+        if (this.cache.dateColumns.includes(colIndex)) {
+          const processedDate = this.processDateCell(cell);
+          if (processedDate) {
+            dateValue = processedDate.isoDate;
+            cell.setAttribute("data-date", processedDate.isoDate);
+            // Use formatted date for display purposes in cache
+            text = processedDate.originalText;
+          }
+        }
+
+        return {
+          element: cell,
+          text: text,
+          lowerText: text.toLowerCase(),
+          numericValue: this.parseNumericValue(text),
+          dateValue: dateValue,
+        };
+      });
+
+      const fullText = cellData.map((c) => c.text).join(" ");
+
+      this.cache.rowData.push({
+        element: row,
+        originalIndex: rowIndex,
+        cells: cellData,
+        fullText: fullText,
+        fullTextLower: fullText.toLowerCase(),
+      });
+    });
+
+    // Precompute unique column values for filters
+    this.precomputeColumnValues();
+  }
+
+  /**
+   * Process date cell: extract first line, normalize, and convert to ISO format
+   */
+  processDateCell(cell) {
+    // Get cell HTML to properly handle <br> tags
+    let cellHtml = cell.innerHTML;
+
+    // Replace &nbsp; with regular spaces
+    cellHtml = cellHtml.replace(/&nbsp;/g, " ");
+
+    // Extract first line (before <br> tag)
+    let firstLine = cellHtml.split(/<br\s*\/?>/i)[0].trim();
+
+    // Remove HTML tags from the first line
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = firstLine;
+    const textContent = tempDiv.textContent.trim();
+
+    if (!textContent) return null;
+
+    // Try to parse and convert to yyyy-mm-dd format
+    const isoDate = this.convertToISODate(textContent);
+
+    return isoDate
+      ? {
+          originalText: textContent,
+          isoDate: isoDate,
+        }
+      : null;
+  }
+
+  /**
+   * Convert various date formats to yyyy-mm-dd ISO format
+   * Supports: dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy, etc.
+   */
+  convertToISODate(dateStr) {
+    // Clean up the date string
+    dateStr = dateStr.trim();
+
+    // Try common date patterns
+    // Pattern: dd/mm/yyyy or dd-mm-yyyy or dd.mm.yyyy
+    const dmyPattern = /^(\d{1,2})[\/ \-\.](\d{1,2})[\/ \-\.](\d{4})$/;
+    const dmyMatch = dateStr.match(dmyPattern);
+
+    if (dmyMatch) {
+      const day = dmyMatch[1].padStart(2, "0");
+      const month = dmyMatch[2].padStart(2, "0");
+      const year = dmyMatch[3];
+      return `${year}-${month}-${day}`;
+    }
+
+    // Pattern: yyyy-mm-dd (already ISO)
+    const isoPattern = /^(\d{4})[\/ \-\.](\d{1,2})[\/ \-\.](\d{1,2})$/;
+    const isoMatch = dateStr.match(isoPattern);
+
+    if (isoMatch) {
+      const year = isoMatch[1];
+      const month = isoMatch[2].padStart(2, "0");
+      const day = isoMatch[3].padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    // Try parsing as Date object (fallback)
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      const year = parsed.getFullYear();
+      const month = String(parsed.getMonth() + 1).padStart(2, "0");
+      const day = String(parsed.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    return null;
+  }
+
+  /**
+   * Parse numeric value from text for sorting
+   */
+  parseNumericValue(text) {
+    const cleaned = text.replace(/[^0-9.-]/g, "");
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? null : num;
+  }
+
+  /**
+   * Precompute unique values for each column (for filter dropdowns)
+   */
+  precomputeColumnValues() {
+    for (let colIndex = 0; colIndex < this.cache.columnCount; colIndex++) {
+      const values = new Set();
+
+      this.cache.rowData.forEach((rowData) => {
+        if (rowData.cells[colIndex]) {
+          const text = rowData.cells[colIndex].text;
+          if (text) {
+            values.add(text);
+          }
+        }
+      });
+
+      // Sort values
+      const sortedValues = Array.from(values).sort((a, b) => {
+        // Try to sort numerically if both are numbers
+        const aNum = parseInt(a);
+        const bNum = parseInt(b);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return aNum - bNum;
+        }
+        return a.localeCompare(b);
+      });
+
+      this.cache.columnValues[colIndex] = sortedValues;
+    }
   }
 
   initializeTableHeaders() {
@@ -214,14 +424,20 @@ class TableFilter {
   }
 
   getUniqueColumnValues(columnIndex) {
-    const tbody = this.table.querySelector("tbody");
-    const rows = tbody ? Array.from(tbody.querySelectorAll("tr")) : [];
+    // Return precomputed values from cache
+    if (this.cache.columnValues[columnIndex]) {
+      return this.cache.columnValues[columnIndex];
+    }
+
+    // Fallback (shouldn't happen after caching)
+    console.warn(
+      `Column ${columnIndex} values not cached, computing on demand`,
+    );
     const values = new Set();
 
-    rows.forEach((row) => {
-      const cells = row.querySelectorAll("td");
-      if (cells[columnIndex]) {
-        const text = cells[columnIndex].textContent.trim();
+    this.cache.rowData.forEach((rowData) => {
+      if (rowData.cells[columnIndex]) {
+        const text = rowData.cells[columnIndex].text;
         if (text) {
           values.add(text);
         }
@@ -230,7 +446,6 @@ class TableFilter {
 
     // Sort values
     return Array.from(values).sort((a, b) => {
-      // Try to sort numerically if both are numbers
       const aNum = parseInt(a);
       const bNum = parseInt(b);
       if (!isNaN(aNum) && !isNaN(bNum)) {
@@ -325,42 +540,27 @@ class TableFilter {
 
   filterTable() {
     const searchTerm = this.activeFilters.search.toLowerCase().trim();
-    const tbody = this.table.querySelector("tbody");
-    const rows = tbody
-      ? tbody.querySelectorAll("tr")
-      : this.table.querySelectorAll("tr");
     let visibleRows = [];
 
-    rows.forEach((row, index) => {
-      // Store original index if not already set
-      if (!row.hasAttribute("data-original-index")) {
-        row.setAttribute("data-original-index", index.toString());
-      }
-
-      // Skip header row if no tbody
-      if (!tbody && index === 0) {
-        return;
-      }
-
+    // Use cached row data instead of querying DOM
+    this.cache.rowData.forEach((rowData) => {
       let isVisible = true;
 
-      // Check search term
+      // Check search term using cached full text
       if (searchTerm) {
-        const text = row.textContent.toLowerCase();
-        if (!text.includes(searchTerm)) {
+        if (!rowData.fullTextLower.includes(searchTerm)) {
           isVisible = false;
         }
       }
 
-      // Check column filters
+      // Check column filters using cached cell data
       if (isVisible) {
         for (const [columnIndex, filterValues] of Object.entries(
           this.activeFilters.columns,
         )) {
-          const cells = row.querySelectorAll("td");
-          const cell = cells[columnIndex];
+          const cell = rowData.cells[columnIndex];
           if (cell && filterValues.length > 0) {
-            const cellText = cell.textContent.trim().toLowerCase();
+            const cellText = cell.lowerText;
             // OR logic: row must match at least ONE of the filter values for this column
             if (!filterValues.includes(cellText)) {
               isVisible = false;
@@ -371,9 +571,9 @@ class TableFilter {
       }
 
       if (isVisible) {
-        visibleRows.push(row);
+        visibleRows.push(rowData);
       } else {
-        row.style.display = "none";
+        rowData.element.style.display = "none";
       }
     });
 
@@ -398,11 +598,11 @@ class TableFilter {
       const endIndex = startIndex + this.paginationState.itemsPerPage;
 
       // Show/hide rows based on pagination
-      visibleRows.forEach((row, index) => {
+      visibleRows.forEach((rowData, index) => {
         if (index >= startIndex && index < endIndex) {
-          row.style.display = "";
+          rowData.element.style.display = "";
         } else {
-          row.style.display = "none";
+          rowData.element.style.display = "none";
         }
       });
 
@@ -410,8 +610,8 @@ class TableFilter {
       this.renderPaginationControls(visibleCount);
     } else {
       // No pagination - show all visible rows
-      visibleRows.forEach((row) => {
-        row.style.display = "";
+      visibleRows.forEach((rowData) => {
+        rowData.element.style.display = "";
       });
 
       // Remove pagination controls if they exist
@@ -539,11 +739,9 @@ class TableFilter {
   }
 
   sortTable(columnIndex) {
-    const tbody = this.table.querySelector("tbody");
-    if (!tbody) return;
+    if (!this.cache.tbody) return;
 
     const headers = this.table.querySelectorAll("thead th");
-    const rows = Array.from(tbody.querySelectorAll("tr"));
 
     // Determine sort direction
     let direction = "asc";
@@ -573,40 +771,47 @@ class TableFilter {
       headers[columnIndex].classList.add(`sort-${direction}`);
     }
 
-    // Sort rows
+    // Sort using cached row data
+    const sortedRows = [...this.cache.rowData];
+
     if (direction) {
-      rows.sort((a, b) => {
-        const aCell = a.querySelectorAll("td")[columnIndex];
-        const bCell = b.querySelectorAll("td")[columnIndex];
+      const isDateColumn = this.cache.dateColumns.includes(columnIndex);
+
+      sortedRows.sort((a, b) => {
+        const aCell = a.cells[columnIndex];
+        const bCell = b.cells[columnIndex];
 
         if (!aCell || !bCell) return 0;
 
-        const aText = aCell.textContent.trim();
-        const bText = bCell.textContent.trim();
-
-        // Try numeric comparison first
-        const aNum = parseFloat(aText.replace(/[^0-9.-]/g, ""));
-        const bNum = parseFloat(bText.replace(/[^0-9.-]/g, ""));
-
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-          return direction === "asc" ? aNum - bNum : bNum - aNum;
+        // Use date sorting for date columns
+        if (isDateColumn && aCell.dateValue && bCell.dateValue) {
+          const comparison = aCell.dateValue.localeCompare(bCell.dateValue);
+          return direction === "asc" ? comparison : -comparison;
         }
 
-        // Fallback to string comparison
-        const comparison = aText.localeCompare(bText);
+        // Use numeric comparison if available
+        if (aCell.numericValue !== null && bCell.numericValue !== null) {
+          return direction === "asc"
+            ? aCell.numericValue - bCell.numericValue
+            : bCell.numericValue - aCell.numericValue;
+        }
+
+        // Fallback to text comparison
+        const comparison = aCell.text.localeCompare(bCell.text);
         return direction === "asc" ? comparison : -comparison;
       });
     } else {
-      // Restore original order by sorting by original index
-      rows.sort((a, b) => {
-        const aIndex = parseInt(a.getAttribute("data-original-index") || "0");
-        const bIndex = parseInt(b.getAttribute("data-original-index") || "0");
-        return aIndex - bIndex;
-      });
+      // Restore original order using original index
+      sortedRows.sort((a, b) => a.originalIndex - b.originalIndex);
     }
 
     // Re-append rows in sorted order
-    rows.forEach((row) => tbody.appendChild(row));
+    sortedRows.forEach((rowData) =>
+      this.cache.tbody.appendChild(rowData.element),
+    );
+
+    // Re-apply filtering to update visibility
+    this.filterTable();
   }
 
   applyQueryStringFilters() {
