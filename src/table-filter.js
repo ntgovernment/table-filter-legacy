@@ -358,11 +358,10 @@ class TableFilter {
     container.innerHTML = `
     <!-- Free text search filter -->
     <div class="filter-option mb-1 col-lg-4" id="text-question">
-        <label for="searchInput">Search</label>
+        <label for="searchInput">Search <span class="search-help" title="Search syntax: ''exact phrase'', fire AND water, fire water (OR)" style="cursor: help;">ⓘ</span></label>
         <div class="input-group" style="position: relative;">
             <input type="text" name="project_title" id="searchInput" class="form-control rounded-0" placeholder="${searchPlaceholder}" autocomplete="off">
             <span class="clear-input" id="clearInput" hidden=""></span>
-            <span class="search-help" title="Search syntax: &quot;exact phrase&quot;, fire AND water, fire water (OR)" style="cursor: help;">ⓘ</span>
         </div>
     </div>
 

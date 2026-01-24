@@ -22,16 +22,14 @@
  * Search Help Icon
  */
 .search-help {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 16px;
+  display: inline-block;
+  margin-left: 4px;
+  margin-top: -6px;
+  font-size: 20px;
   color: #666;
   opacity: 0.6;
   transition: opacity 0.2s ease;
-  z-index: 10;
-  pointer-events: auto;
+  vertical-align: middle;
 }
 
 .search-help:hover {
