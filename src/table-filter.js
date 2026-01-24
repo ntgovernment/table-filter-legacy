@@ -244,6 +244,53 @@ class TableFilter {
   }
 
   /**
+   * Parse search input into structured terms:
+   * - Extracts quoted phrases for exact matching
+   * - Splits remaining text by case-insensitive AND keyword
+   * - Splits each AND group by spaces for OR matching within group
+   * - Filters empty strings and handles edge cases
+   *
+   * Examples:
+   *   "fire water" → { andGroups: [["fire", "water"]], exactPhrases: [] }
+   *   "fire AND water" → { andGroups: [["fire"], ["water"]], exactPhrases: [] }
+   *   '"John Smith"' → { andGroups: [], exactPhrases: ["john smith"] }
+   *   '"urgent" AND fire water' → { andGroups: [["urgent"], ["fire", "water"]], exactPhrases: ["urgent"] }
+   */
+  parseSearchTerms(input) {
+    const trimmed = input.trim();
+    if (!trimmed) return { andGroups: [], exactPhrases: [] };
+
+    // Extract quoted phrases and replace with placeholders
+    const phrases = [];
+    const placeholders = [];
+    let processed = trimmed.replace(/"([^"]+)"/g, (match, phrase) => {
+      const placeholder = `__PHRASE_${phrases.length}__`;
+      phrases.push(phrase.toLowerCase());
+      placeholders.push(placeholder);
+      return placeholder;
+    });
+
+    // Split by AND (case-insensitive)
+    const andParts = processed.split(/\s+and\s+/i);
+
+    // Split each AND part by spaces for OR terms
+    const andGroups = andParts
+      .map((part) => {
+        return part
+          .split(/\s+/)
+          .filter((term) => term.length > 0)
+          .map((term) => {
+            // Restore phrase or lowercase term
+            const phraseIndex = placeholders.indexOf(term);
+            return phraseIndex >= 0 ? phrases[phraseIndex] : term.toLowerCase();
+          });
+      })
+      .filter((group) => group.length > 0);
+
+    return { andGroups, exactPhrases: phrases };
+  }
+
+  /**
    * Precompute unique values for each column (for filter dropdowns)
    */
   precomputeColumnValues() {
@@ -311,16 +358,17 @@ class TableFilter {
     <!-- Free text search filter -->
     <div class="filter-option mb-1 col-lg-4" id="text-question">
         <label for="searchInput">Search</label>
-        <div class="input-group">
+        <div class="input-group" style="position: relative;">
             <input type="text" name="project_title" id="searchInput" class="form-control rounded-0" placeholder="${searchPlaceholder}" autocomplete="off">
             <span class="clear-input" id="clearInput" hidden=""></span>
+            <span class="search-help" title="Search syntax: &quot;exact phrase&quot;, fire AND water, fire water (OR)" style="cursor: help;">ⓘ</span>
         </div>
     </div>
 
     <!-- Filter dropdowns will be generated dynamically -->
     <div id="filterControls" class="d-flex flex-nowrap col-lg-8" style="gap: 16px;"></div>
 
-    <div class="mt-3 hidden" id="applied-filters">
+    <div class="m-3 hidden" id="applied-filters">
         <div class="filter-option" id="active-filters">
             <strong>Applied filters:</strong>
             <div class="d-inline-block pt-2" id="filterPillsContainer">
@@ -512,16 +560,28 @@ class TableFilter {
   }
 
   filterTable() {
-    const searchTerm = this.activeFilters.search.toLowerCase().trim();
+    const { andGroups, exactPhrases } = this.parseSearchTerms(
+      this.activeFilters.search,
+    );
     let visibleRows = [];
 
     // Use cached row data instead of querying DOM
     this.cache.rowData.forEach((rowData) => {
       let isVisible = true;
 
-      // Check search term using cached full text
-      if (searchTerm) {
-        if (!rowData.fullTextLower.includes(searchTerm)) {
+      // Check search terms: all exact phrases must match, all AND groups must have at least one OR term match
+      if (andGroups.length > 0 || exactPhrases.length > 0) {
+        // All exact phrases must match
+        const allPhrasesMatch = exactPhrases.every((phrase) =>
+          rowData.fullTextLower.includes(phrase),
+        );
+
+        // All AND groups must have at least one term match (OR within group)
+        const allGroupsMatch = andGroups.every((orTerms) =>
+          orTerms.some((term) => rowData.fullTextLower.includes(term)),
+        );
+
+        if (!allPhrasesMatch || !allGroupsMatch) {
           isVisible = false;
         }
       }

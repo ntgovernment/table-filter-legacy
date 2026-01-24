@@ -8,6 +8,7 @@ A simple, accessible table filtering component for Squiz Matrix and legacy gover
 
 ## Features
 
+- **Advanced Multi-Word Search**: Flexible search with OR logic, AND keyword, and quoted exact phrases
 - **Text Search**: Real-time search across all table columns
 - **Column Filters**: Multi-select dropdown filters for specific columns
 - **Sortable Columns**: Click column headers to sort ascending/descending
@@ -40,6 +41,46 @@ The component automatically:
 - Sorts dates chronologically regardless of display format
 
 Supported date formats: dd/mm/yyyy, dd-mm-yyyy, yyyy-mm-dd, and more.
+
+### Multi-Word Search
+
+The search functionality supports three powerful search modes:
+
+#### 1. OR Logic (Default)
+
+Space-separated words match rows containing ANY of the words:
+
+- `fire water` → Finds rows with "fire" OR "water" (or both)
+- `John Smith 2024` → Matches rows containing "John" OR "Smith" OR "2024"
+
+#### 2. AND Keyword
+
+Use case-insensitive `AND` to require multiple terms:
+
+- `fire AND water` → Finds rows with BOTH "fire" AND "water"
+- `urgent AND 2024` → Matches rows containing BOTH terms
+- `John AND Smith AND urgent` → All three terms must be present
+
+#### 3. Quoted Phrases
+
+Quote text for exact phrase matching:
+
+- `"John Smith"` → Exact match for "John Smith" (not "Smith, John")
+- `"fire report"` → Finds exact phrase "fire report"
+- `"urgent" AND fire` → Exact "urgent" phrase AND contains "fire"
+
+#### Combined Examples
+
+- `"Alice Springs" AND 2024` → Exact location phrase AND year
+- `fire water AND urgent` → ("fire" OR "water") AND "urgent"
+- `"exact phrase" term1 term2` → Exact phrase AND ("term1" OR "term2")
+
+**Search Tips:**
+
+- Searches are case-insensitive
+- Multiple spaces are ignored
+- Empty quotes are ignored
+- Unmatched quotes are treated as literal characters
 
 ## Installation
 
