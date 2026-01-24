@@ -1116,6 +1116,7 @@ class TableFilter {
     buttons.push(`
       <li class="page-item page-item-nav ${currentPage === 1 ? "disabled" : ""}">
         <button class="page-link page-link-nav" data-page="${currentPage - 1}" ${currentPage === 1 ? "disabled" : ""} aria-label="Previous">
+          <i class="fas fa-chevron-left"></i>
           <span class="page-nav-text">Previous</span>
         </button>
       </li>

@@ -52,13 +52,24 @@
 
 .pagination {
   margin: 0;
+  display: flex;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+}
+
+.page-item,
+.page-item-nav,
+.page-item-ellipsis {
+  display: flex;
+  align-items: center;
 }
 
 /* Page button styles - NT Gov Design System */
 
 /* Navigation buttons (Previous/Next) - Tertiary style */
 .page-link-nav {
-  padding: 12px;
+  padding: 8px 12px;
   background-color: transparent;
   border: none;
   color: #1f1f5f;
@@ -70,6 +81,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 32px;
   transition: all 0.2s ease;
 }
 
@@ -103,7 +115,8 @@
 /* Page number buttons */
 .page-link-number {
   width: 32px;
-  padding: 4px 16px;
+  height: 32px;
+  padding: 4px;
   background-color: transparent;
   border: none;
   color: #1f1f5f;
@@ -154,8 +167,12 @@
   font-family: Lato, sans-serif;
   font-weight: 400;
   line-height: 24px;
-  padding: 4px 8px;
-  display: inline-block;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 32px;
 }
 
 .page-item-ellipsis {
