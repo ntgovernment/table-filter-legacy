@@ -122,7 +122,8 @@ class TableFilter {
 
       const cells = row.querySelectorAll("td");
       const cellData = Array.from(cells).map((cell, colIndex) => {
-        let text = cell.textContent.trim();
+        // Normalize whitespace: replace newlines, tabs, and multiple spaces with single space
+        let text = cell.textContent.trim().replace(/\s+/g, " ");
         let dateValue = null;
 
         // Process date columns
@@ -368,16 +369,18 @@ class TableFilter {
     <!-- Filter dropdowns will be generated dynamically -->
     <div id="filterControls" class="d-flex flex-nowrap col-lg-8" style="gap: 16px;"></div>
 
-    <div class="m-3 hidden" id="applied-filters">
-        <div class="filter-option" id="active-filters">
-            <strong>Applied filters:</strong>
-            <div class="d-inline-block pt-2" id="filterPillsContainer">
-                <span id="filterPills"></span>
-                <button type="button" id="copyFilterLink" class="filter-link-button" style="display: none;" title="Copy filter link">
-                    <i class="fas fa-link"></i> Copy filter link
-                </button>
-                <a href="#" id="clearAllFilters">Clear all</a>
+    <div class="m-3 w-100 hidden" id="applied-filters">
+        <div class="filter-option d-flex justify-content-between align-items-start" id="active-filters">
+            <div>
+                <strong>Applied filters:</strong>
+                <div class="d-inline-block pt-2" id="filterPillsContainer">
+                    <span id="filterPills"></span>
+                    <a href="#" id="clearAllFilters">Clear all</a>
+                </div>
             </div>
+            <button type="button" id="copyFilterLink" class="filter-link-button my-2 mx-0" style="display: none;" title="Copy filter link">
+                <i class="fas fa-link"></i> Copy filter link
+            </button>
         </div>
     </div>
     `;
