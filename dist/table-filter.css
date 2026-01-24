@@ -245,6 +245,7 @@ table.table[data-table-filter] th .header-text {
   overflow-wrap: break-word !important;
   hyphens: auto !important;
   max-width: calc(100% - 30px) !important;
+  margin-top: 3px;
 }
 
 /* Header Icons - stays on the right, floated left next to text */
