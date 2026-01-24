@@ -78,20 +78,7 @@ export function sortTable(context, columnIndex) {
   // Update header UI
   updateHeaderClasses(headers, columnIndex, direction);
 
-  // Perform sort
-  const sortedRows = performSort(
-    context.cache.rowData,
-    columnIndex,
-    direction,
-    context.cache.dateColumns,
-  );
-
-  // Re-append rows in sorted order
-  sortedRows.forEach((rowData) =>
-    context.cache.tbody.appendChild(rowData.element),
-  );
-
-  // Re-apply filtering to update visibility
+  // Re-apply filtering which will also apply sorting and pagination
   context.filterTable();
 }
 
@@ -121,7 +108,7 @@ function updateHeaderClasses(headers, columnIndex, direction) {
  * @param {Array} dateColumns - Array of column indices that contain dates
  * @returns {Array} Sorted array of row data
  */
-function performSort(rowData, columnIndex, direction, dateColumns) {
+export function performSort(rowData, columnIndex, direction, dateColumns) {
   const sortedRows = [...rowData];
 
   if (direction) {
@@ -133,9 +120,15 @@ function performSort(rowData, columnIndex, direction, dateColumns) {
 
       if (!aCell || !bCell) return 0;
 
-      // Use date sorting for date columns
+      // Use date sorting for date columns (highest priority)
       if (isDateColumn && aCell.dateValue && bCell.dateValue) {
         const comparison = aCell.dateValue.localeCompare(bCell.dateValue);
+        return direction === "asc" ? comparison : -comparison;
+      }
+
+      // Use sortValue if available (for anchor tags and dates)
+      if (aCell.sortValue && bCell.sortValue) {
+        const comparison = aCell.sortValue.localeCompare(bCell.sortValue);
         return direction === "asc" ? comparison : -comparison;
       }
 

@@ -79,7 +79,7 @@ On page load, the component:
 1. Extracts first line before `<br>` tag
 2. Replaces `&nbsp;` with spaces
 3. Converts to ISO format (yyyy-mm-dd)
-4. Stores in `data-date` attribute
+4. Stores in `data-sort` attribute
 5. Caches for fast sorting
 
 **Supported Formats**: dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy, yyyy-mm-dd, and Date object parsing

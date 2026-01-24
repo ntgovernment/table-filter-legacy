@@ -5,7 +5,8 @@
 
 import {
   initializeTableHeaders as initSortHeaders,
-  sortTable as performSort,
+  sortTable as performSortAction,
+  performSort,
 } from "./components/SortTable.js";
 
 class TableFilter {
@@ -54,7 +55,8 @@ class TableFilter {
       thead: null,
       headerCells: [],
       allRows: [],
-      rowData: [],
+      rowData: [], // Original complete table data
+      filteredRowData: [], // Filtered results cache
       columnValues: {},
       columnCount: 0,
       rowCount: 0,
@@ -74,6 +76,7 @@ class TableFilter {
     this.createFilterMarkup();
     this.initializeTableHeaders();
     this.attachEventListeners();
+    this.applyDefaultSort();
     this.applyQueryStringFilters();
 
     // Apply pagination on initial load if no filters applied
@@ -125,13 +128,23 @@ class TableFilter {
         // Normalize whitespace: replace newlines, tabs, and multiple spaces with single space
         let text = cell.textContent.trim().replace(/\s+/g, " ");
         let dateValue = null;
+        let sortValue = null;
+
+        // Process cells that start with anchor tags
+        const anchorTag = cell.querySelector("a");
+        if (anchorTag && cell.innerHTML.trim().startsWith("<a")) {
+          const anchorText = anchorTag.textContent.trim().replace(/\s+/g, " ");
+          sortValue = anchorText;
+          cell.setAttribute("data-sort", anchorText);
+        }
 
         // Process date columns
         if (this.cache.dateColumns.includes(colIndex)) {
           const processedDate = this.processDateCell(cell);
           if (processedDate) {
             dateValue = processedDate.isoDate;
-            cell.setAttribute("data-date", processedDate.isoDate);
+            sortValue = processedDate.isoDate;
+            cell.setAttribute("data-sort", processedDate.isoDate);
             // Use formatted date for display purposes in cache
             text = processedDate.originalText;
           }
@@ -143,6 +156,7 @@ class TableFilter {
           lowerText: text.toLowerCase(),
           numericValue: this.parseNumericValue(text),
           dateValue: dateValue,
+          sortValue: sortValue,
         };
       });
 
@@ -569,7 +583,12 @@ class TableFilter {
     );
     let visibleRows = [];
 
-    // Use cached row data instead of querying DOM
+    // Hide all rows first to ensure clean state
+    this.cache.rowData.forEach((rowData) => {
+      rowData.element.style.display = "none";
+    });
+
+    // Filter rows to determine which should be visible
     this.cache.rowData.forEach((rowData) => {
       let isVisible = true;
 
@@ -609,12 +628,37 @@ class TableFilter {
 
       if (isVisible) {
         visibleRows.push(rowData);
-      } else {
-        rowData.element.style.display = "none";
       }
     });
 
-    const visibleCount = visibleRows.length;
+    // Save filtered results to cache
+    this.cache.filteredRowData = visibleRows;
+
+    // Apply sorting if active
+    if (this.sortState.direction && this.sortState.columnIndex !== null) {
+      // Sort the filtered data
+      this.cache.filteredRowData = performSort(
+        this.cache.filteredRowData,
+        this.sortState.columnIndex,
+        this.sortState.direction,
+        this.cache.dateColumns,
+      );
+
+      // Re-append filtered rows in sorted order to physically reorder the DOM
+      this.cache.filteredRowData.forEach((rowData) => {
+        this.cache.tbody.appendChild(rowData.element);
+      });
+    } else {
+      // No active sort - restore original order for filtered rows
+      const originalOrder = [...this.cache.filteredRowData].sort(
+        (a, b) => a.originalIndex - b.originalIndex,
+      );
+      originalOrder.forEach((rowData) => {
+        this.cache.tbody.appendChild(rowData.element);
+      });
+    }
+
+    const visibleCount = this.cache.filteredRowData.length;
 
     // Apply pagination if enabled
     if (this.paginationState.enabled && visibleCount > 0) {
@@ -635,7 +679,7 @@ class TableFilter {
       const endIndex = startIndex + this.paginationState.itemsPerPage;
 
       // Show/hide rows based on pagination
-      visibleRows.forEach((rowData, index) => {
+      this.cache.filteredRowData.forEach((rowData, index) => {
         if (index >= startIndex && index < endIndex) {
           rowData.element.style.display = "";
         } else {
@@ -647,7 +691,7 @@ class TableFilter {
       this.renderPaginationControls(visibleCount);
     } else {
       // No pagination - show all visible rows
-      visibleRows.forEach((rowData) => {
+      this.cache.filteredRowData.forEach((rowData) => {
         rowData.element.style.display = "";
       });
 
@@ -777,7 +821,41 @@ class TableFilter {
 
   sortTable(columnIndex) {
     // Use imported function from SortTable component
-    performSort(this, columnIndex);
+    performSortAction(this, columnIndex);
+  }
+
+  applyDefaultSort() {
+    const filterDiv = document.querySelector("[data-table-filter]");
+    const defaultColumn = filterDiv?.getAttribute("data-default-column");
+    const defaultOrder = filterDiv?.getAttribute("data-order");
+
+    if (!defaultColumn || !this.cache.thead) return;
+
+    // Find column index by matching header text
+    const headers = Array.from(this.cache.thead.querySelectorAll("th"));
+    const columnIndex = headers.findIndex(
+      (th) =>
+        th.textContent.trim().toLowerCase() === defaultColumn.toLowerCase(),
+    );
+
+    if (columnIndex === -1) return;
+
+    // Set sort state
+    const direction =
+      defaultOrder && defaultOrder.toLowerCase() === "descending"
+        ? "desc"
+        : "asc";
+    this.sortState.columnIndex = columnIndex;
+    this.sortState.direction = direction;
+
+    // Update header UI
+    const allHeaders = this.table.querySelectorAll("thead th");
+    allHeaders.forEach((h) => {
+      h.classList.remove("sort-asc", "sort-desc");
+    });
+    if (headers[columnIndex]) {
+      headers[columnIndex].classList.add(`sort-${direction}`);
+    }
   }
 
   applyQueryStringFilters() {

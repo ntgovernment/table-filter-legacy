@@ -37,7 +37,7 @@ The component automatically:
 - Extracts the first line of cell content (before `<br>` tags)
 - Normalizes dates by replacing `&nbsp;` with spaces
 - Converts dates to ISO format (yyyy-mm-dd) for accurate sorting
-- Stores date values in `data-date` attributes
+- Stores date values in `data-sort` attributes
 - Sorts dates chronologically regardless of display format
 
 Supported date formats: dd/mm/yyyy, dd-mm-yyyy, yyyy-mm-dd, and more.
