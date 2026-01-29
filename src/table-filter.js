@@ -35,9 +35,17 @@ class TableFilter {
       direction: null, // 'asc' or 'desc'
     };
 
+    // Find the filterDiv associated with this table instance
+    // Use data-table-id to match the correct filter configuration
+    const tableId = this.table.id;
+    this.filterDiv = tableId
+      ? document.querySelector(
+          `[data-table-filter][data-table-id="${tableId}"]`,
+        )
+      : document.querySelector("[data-table-filter]");
+
     // Read pagination configuration from data attributes
-    const filterDiv = document.querySelector("[data-table-filter]");
-    const itemsPerPageAttr = filterDiv?.getAttribute(
+    const itemsPerPageAttr = this.filterDiv?.getAttribute(
       "data-pagination-items-per-page",
     );
 
@@ -355,12 +363,11 @@ class TableFilter {
     container.id = "ntgc-page-filters";
     container.className = "row mx-1 d-print-none";
 
-    // Get data attributes
-    const filterDiv = document.querySelector("[data-table-filter]");
+    // Get data attributes from instance-specific filterDiv
     const searchPlaceholder =
-      filterDiv?.getAttribute("data-search-placeholder") || "Search";
+      this.filterDiv?.getAttribute("data-search-placeholder") || "Search";
     const columnFiltersAttr =
-      filterDiv?.getAttribute("data-column-filters") || "";
+      this.filterDiv?.getAttribute("data-column-filters") || "";
 
     // Parse column filters
     const columnFiltersArray = columnFiltersAttr
@@ -825,11 +832,17 @@ class TableFilter {
   }
 
   applyDefaultSort() {
-    const filterDiv = document.querySelector("[data-table-filter]");
-    const defaultColumn = filterDiv?.getAttribute("data-default-column");
-    const defaultOrder = filterDiv?.getAttribute("data-order");
+    const defaultColumn = this.filterDiv?.getAttribute("data-default-column");
+    const defaultOrder = this.filterDiv?.getAttribute("data-order");
 
-    if (!defaultColumn || !this.cache.thead) return;
+    if (!defaultColumn || !this.cache.thead) {
+      if (!defaultColumn) {
+        console.log(
+          "[TableFilter] No default column specified for initial sort",
+        );
+      }
+      return;
+    }
 
     // Find column index by matching header text
     const headers = Array.from(this.cache.thead.querySelectorAll("th"));
@@ -838,7 +851,13 @@ class TableFilter {
         th.textContent.trim().toLowerCase() === defaultColumn.toLowerCase(),
     );
 
-    if (columnIndex === -1) return;
+    if (columnIndex === -1) {
+      console.warn(
+        `[TableFilter] Default column "${defaultColumn}" not found in table headers. Available headers:`,
+        headers.map((h) => h.textContent.trim()),
+      );
+      return;
+    }
 
     // Set sort state
     const direction =
@@ -856,6 +875,10 @@ class TableFilter {
     if (headers[columnIndex]) {
       headers[columnIndex].classList.add(`sort-${direction}`);
     }
+
+    console.log(
+      `[TableFilter] Initial sort applied: column "${defaultColumn}" (index ${columnIndex}), direction: ${direction}`,
+    );
   }
 
   applyQueryStringFilters() {
