@@ -345,6 +345,7 @@ class TableFilter {
 
   /**
    * Precompute unique values for each column (for filter dropdowns)
+   * Splits comma-separated values to allow filtering by individual values
    */
   precomputeColumnValues() {
     for (let colIndex = 0; colIndex < this.cache.columnCount; colIndex++) {
@@ -354,7 +355,14 @@ class TableFilter {
         if (rowData.cells[colIndex]) {
           const text = rowData.cells[colIndex].text;
           if (text) {
-            values.add(text);
+            // Split by comma and add individual values
+            const parts = text.split(",");
+            parts.forEach((part) => {
+              const trimmed = part.trim();
+              if (trimmed) {
+                values.add(trimmed);
+              }
+            });
           }
         }
       });
@@ -515,7 +523,14 @@ class TableFilter {
       if (rowData.cells[columnIndex]) {
         const text = rowData.cells[columnIndex].text;
         if (text) {
-          values.add(text);
+          // Split by comma and add individual values
+          const parts = text.split(",");
+          parts.forEach((part) => {
+            const trimmed = part.trim();
+            if (trimmed) {
+              values.add(trimmed);
+            }
+          });
         }
       }
     });
@@ -654,8 +669,17 @@ class TableFilter {
           const cell = rowData.cells[columnIndex];
           if (cell && filterValues.length > 0) {
             const cellText = cell.text;
+
+            // Split cell text by comma to handle multi-value cells
+            const cellParts = cellText.split(",").map((part) => part.trim());
+
             // OR logic: row must match at least ONE of the filter values for this column
-            if (!filterValues.includes(cellText)) {
+            // Check if any of the cell's parts match any of the selected filter values
+            const hasMatch = filterValues.some((filterValue) =>
+              cellParts.includes(filterValue),
+            );
+
+            if (!hasMatch) {
               isVisible = false;
               break;
             }
