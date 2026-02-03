@@ -216,7 +216,7 @@ class TableFilter {
 
   /**
    * Convert various date formats to yyyy-mm-dd ISO format
-   * Supports: dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy, etc.
+   * Supports: dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy, DD Month YYYY, etc.
    */
   convertToISODate(dateStr) {
     // Clean up the date string
@@ -243,6 +243,36 @@ class TableFilter {
       const month = isoMatch[2].padStart(2, "0");
       const day = isoMatch[3].padStart(2, "0");
       return `${year}-${month}-${day}`;
+    }
+
+    // Pattern: DD Month YYYY (e.g., "11 December 1981")
+    const monthNamePattern = /^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/;
+    const monthNameMatch = dateStr.match(monthNamePattern);
+
+    if (monthNameMatch) {
+      const day = monthNameMatch[1].padStart(2, "0");
+      const monthName = monthNameMatch[2].toLowerCase();
+      const year = monthNameMatch[3];
+
+      const monthMap = {
+        january: "01",
+        february: "02",
+        march: "03",
+        april: "04",
+        may: "05",
+        june: "06",
+        july: "07",
+        august: "08",
+        september: "09",
+        october: "10",
+        november: "11",
+        december: "12",
+      };
+
+      const month = monthMap[monthName];
+      if (month) {
+        return `${year}-${month}-${day}`;
+      }
     }
 
     // Try parsing as Date object (fallback)
