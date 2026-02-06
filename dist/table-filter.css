@@ -100,6 +100,21 @@
   appearance: none;
 }
 
+/* Small variant for compact dropdowns (e.g., pagination) */
+.form-select-sm {
+  padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+  -moz-padding-start: calc(0.5rem - 3px);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background-position: right 0.5rem center;
+  background-size: 12px 9px;
+}
+
+/* Remove border radius for square corners */
+.rounded-0 {
+  border-radius: 0 !important;
+}
+
 /**
  * Filter Pills Styles
  */
@@ -256,6 +271,11 @@ table.table[data-table-filter] th .header-icons {
 }
 
 /* Sort Icons */
+/* Remove external stylesheet :after pseudo-elements (from NT Gov styles) */
+.sort-icon:after {
+  content: none !important;
+}
+
 table.table[data-table-filter] th .sort-icon {
   display: flex !important;
   flex-direction: column !important;

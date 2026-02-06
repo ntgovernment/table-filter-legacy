@@ -57,6 +57,21 @@ class TableFilter {
       availableSizes: [10, 25, 50, 100],
     };
 
+    // Read display options from data attributes
+    const preserveCaseAttr = this.filterDiv?.getAttribute(
+      "data-preserve-original-case",
+    );
+    const columnOptionsAttr = this.filterDiv?.getAttribute(
+      "data-column-options",
+    );
+
+    this.displayOptions = {
+      preserveOriginalCase:
+        !!preserveCaseAttr ||
+        (columnOptionsAttr &&
+          columnOptionsAttr.includes("Preserve original case")),
+    };
+
     // Initialize cache structure
     this.cache = {
       tbody: null,
@@ -484,7 +499,7 @@ class TableFilter {
       const selectId = `selectInput${index + 1}`;
       const label =
         columnName === "Year of finding" ? "Year of issue" : columnName;
-      const placeholder = `Select ${label.toLowerCase()}`;
+      const placeholder = `Select ${this.displayOptions.preserveOriginalCase ? label : label.toLowerCase()}`;
 
       filterDiv.innerHTML = `
         <label for="${selectId}" class="ntgc-form-input--label">${label}</label>
@@ -1182,7 +1197,7 @@ class TableFilter {
     const pageSizeSelector = `
       <div class="page-size-control">
         <label for="pageSizeSelect" class="page-size-label">Show:</label>
-        <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
+        <select id="pageSizeSelect" class="form-select form-select-sm page-size-select rounded-0">
           ${pageSizeOptions}
         </select>
         <span class="results-info">Showing ${startResult}-${endResult} of ${visibleCount} results</span>

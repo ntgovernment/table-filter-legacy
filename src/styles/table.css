@@ -53,6 +53,11 @@ table.table[data-table-filter] th .header-icons {
 }
 
 /* Sort Icons */
+/* Remove external stylesheet :after pseudo-elements (from NT Gov styles) */
+.sort-icon:after {
+  content: none !important;
+}
+
 table.table[data-table-filter] th .sort-icon {
   display: flex !important;
   flex-direction: column !important;
