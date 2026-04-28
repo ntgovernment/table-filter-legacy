@@ -1,0 +1,4 @@
+Line 433: Remove toLowerCase from option value
+Line 598: Change cell.lowerText to cell.text  
+Line 817: Remove toLowerCase from value comparison
+Lines 828, 832: Remove toLowerCase when pushing values

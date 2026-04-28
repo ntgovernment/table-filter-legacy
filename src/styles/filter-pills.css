@@ -66,6 +66,7 @@
   border: 1px solid #d3d3d7;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 170px;
 }
 
 .filter-link-button:hover {

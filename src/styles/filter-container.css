@@ -17,3 +17,22 @@
   font-weight: 600;
   color: #333;
 }
+
+/* Filter inputs wrapper - equal width layout */
+.filter-inputs-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+/* All filter options have equal width */
+.filter-inputs-wrapper .filter-option {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Filter controls container */
+.filter-controls {
+  display: contents;
+}
