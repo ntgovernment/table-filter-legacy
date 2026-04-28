@@ -102,6 +102,7 @@ Sorting priority:
 
 **Search**: Real-time across all columns using cached text  
 **Column Filters**: Multi-select dropdowns with OR logic  
+**Multi-Value Cells**: Cell values containing `; ` are split into individual dropdown options at both build time (precomputed cache) and filter time (row matching)  
 **Filter Pills**: Visual display with individual removal  
 **URL Sharing**: Generates shareable links with filter state
 

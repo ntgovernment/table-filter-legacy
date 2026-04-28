@@ -11,6 +11,7 @@ A simple, accessible table filtering component for Squiz Matrix and legacy gover
 - **Advanced Multi-Word Search**: Flexible search with OR logic, AND keyword, and quoted exact phrases
 - **Text Search**: Real-time search across all table columns
 - **Column Filters**: Multi-select dropdown filters for specific columns
+- **Multi-Value Cell Support**: Cells containing multiple values separated by `; ` are split into individual filter options
 - **Sortable Columns**: Click column headers to sort ascending/descending
 - **Pagination**: Configurable items per page with navigation controls
 - **Filter Pills**: Visual display of active filters with individual removal
@@ -169,6 +170,16 @@ Use data attributes to enable additional features:
 | `data-pagination-items-per-page` | No       | Number of rows per page (enables pagination)                        | `data-pagination-items-per-page="10"`  |
 | `data-default-column`            | No       | Column name to sort by default                                      | `data-default-column="Date"`           |
 | `data-order`                     | No       | Default sort order: `Ascending` or `Descending`                     | `data-order="Descending"`              |
+
+### Multi-Value Cell Data
+
+Cells that contain multiple values separated by `; ` (semicolon + space) are automatically split into individual dropdown options:
+
+```html
+<td>Apples; Bananas; Cherries</td>
+```
+
+This produces three separate options in the filter dropdown — `Apples`, `Bananas`, and `Cherries` — rather than a single combined option. Selecting any one of them will match that row.
 
 ### URL-Based Filter Sharing
 

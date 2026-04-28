@@ -370,8 +370,8 @@ class TableFilter {
         if (rowData.cells[colIndex]) {
           const text = rowData.cells[colIndex].text;
           if (text) {
-            // Split by comma and add individual values
-            const parts = text.split(",");
+            // Split by semicolon to handle multi-value cells (e.g. "A; B; C")
+            const parts = text.split(";");
             parts.forEach((part) => {
               const trimmed = part.trim();
               if (trimmed) {
@@ -538,8 +538,8 @@ class TableFilter {
       if (rowData.cells[columnIndex]) {
         const text = rowData.cells[columnIndex].text;
         if (text) {
-          // Split by comma and add individual values
-          const parts = text.split(",");
+          // Split by semicolon to handle multi-value cells (e.g. "A; B; C")
+          const parts = text.split(";");
           parts.forEach((part) => {
             const trimmed = part.trim();
             if (trimmed) {
@@ -685,8 +685,8 @@ class TableFilter {
           if (cell && filterValues.length > 0) {
             const cellText = cell.text;
 
-            // Split cell text by comma to handle multi-value cells
-            const cellParts = cellText.split(",").map((part) => part.trim());
+            // Split cell text by semicolon to handle multi-value cells (e.g. "A; B; C")
+            const cellParts = cellText.split(";").map((part) => part.trim());
 
             // OR logic: row must match at least ONE of the filter values for this column
             // Check if any of the cell's parts match any of the selected filter values
